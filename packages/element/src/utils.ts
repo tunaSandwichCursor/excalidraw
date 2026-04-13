@@ -34,7 +34,7 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import { elementCenterPoint, getDiamondPoints, getStarPoints } from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -57,6 +57,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 type ElementShape = [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]];
@@ -462,6 +463,40 @@ export function deconstructDiamondElement(
   return shape;
 }
 
+/**
+ * Get the **unrotated** building components of a star element
+ * in the form of line segments and curves (no curves) as a tuple.
+ */
+export function deconstructStarElement(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]] {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const localPoints = getStarPoints(element, offset);
+  const { x, y } = element;
+  const sides: LineSegment<GlobalPoint>[] = [];
+  for (let i = 0; i < localPoints.length; i++) {
+    const j = (i + 1) % localPoints.length;
+    sides.push(
+      lineSegment(
+        pointFrom(x + localPoints[i][0], y + localPoints[i][1]),
+        pointFrom(x + localPoints[j][0], y + localPoints[j][1]),
+      ),
+    );
+  }
+
+  const shape = [sides, []] as ElementShape;
+
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
 // Checks if the first and last point are close enough
 // to be considered a loop
 export const isPathALoop = (
@@ -602,6 +637,17 @@ export const getSnapOutlineMidPoint = (
 
           return pointFrom<GlobalPoint>(rotatedPoint[0], rotatedPoint[1]);
         })
+      : element.type === "star"
+      ? (() => {
+          const [segments] = deconstructStarElement(element);
+          return segments.map((seg) => {
+            const mid = pointFrom<GlobalPoint>(
+              (seg[0][0] + seg[1][0]) / 2,
+              (seg[0][1] + seg[1][1]) / 2,
+            );
+            return pointRotateRads(mid, center, element.angle);
+          });
+        })()
       : [
           // RIGHT midpoint
           pointRotateRads(

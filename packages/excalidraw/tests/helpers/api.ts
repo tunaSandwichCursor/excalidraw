@@ -261,17 +261,20 @@ export class API {
       fillStyle: rest.fillStyle ?? appState.currentItemFillStyle,
       strokeWidth: rest.strokeWidth ?? appState.currentItemStrokeWidth,
       strokeStyle: rest.strokeStyle ?? appState.currentItemStrokeStyle,
-      roundness: (
-        rest.roundness === undefined
-          ? appState.currentItemRoundness === "round"
-          : rest.roundness
-      )
-        ? {
-            type: isLinearElementType(type)
-              ? ROUNDNESS.PROPORTIONAL_RADIUS
-              : ROUNDNESS.ADAPTIVE_RADIUS,
-          }
-        : null,
+      roundness:
+        type === "star"
+          ? null
+          : (
+              rest.roundness === undefined
+                ? appState.currentItemRoundness === "round"
+                : rest.roundness
+            )
+            ? {
+                type: isLinearElementType(type)
+                  ? ROUNDNESS.PROPORTIONAL_RADIUS
+                  : ROUNDNESS.ADAPTIVE_RADIUS,
+              }
+            : null,
       roughness: rest.roughness ?? appState.currentItemRoughness,
       opacity: rest.opacity ?? appState.currentItemOpacity,
       boundElements: rest.boundElements ?? null,
@@ -281,8 +284,9 @@ export class API {
       case "rectangle":
       case "diamond":
       case "ellipse":
+      case "star":
         element = newElement({
-          type: type as "rectangle" | "diamond" | "ellipse",
+          type: type as "rectangle" | "diamond" | "ellipse" | "star",
           ...base,
         });
         break;

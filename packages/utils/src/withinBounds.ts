@@ -1,5 +1,5 @@
 import { arrayToMap, type Bounds } from "@excalidraw/common";
-import { getElementBounds } from "@excalidraw/element";
+import { getElementBounds, getStarPoints } from "@excalidraw/element";
 import {
   isArrowElement,
   isExcalidrawElement,
@@ -33,12 +33,7 @@ const getNonLinearElementRelativePoints = (
     Element,
     ExcalidrawLinearElement | ExcalidrawFreeDrawElement
   >,
-): [
-  TopLeft: LocalPoint,
-  TopRight: LocalPoint,
-  BottomRight: LocalPoint,
-  BottomLeft: LocalPoint,
-] => {
+): LocalPoint[] => {
   if (element.type === "diamond") {
     return [
       pointFrom(element.width / 2, 0),
@@ -46,6 +41,9 @@ const getNonLinearElementRelativePoints = (
       pointFrom(element.width / 2, element.height),
       pointFrom(0, element.height / 2),
     ];
+  }
+  if (element.type === "star") {
+    return getStarPoints(element).map(([px, py]) => pointFrom(px, py));
   }
   return [
     pointFrom(0, 0),

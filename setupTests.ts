@@ -28,6 +28,47 @@ require("fake-indexeddb/auto");
 
 polyfill();
 
+// Node can expose a broken `localStorage` (e.g. no `clear()`, or a proxy that rejects
+// assignment). Tests call `localStorage.clear()` in beforeEach.
+const createLocalStorageMock = () => {
+  let store: Record<string, string> = {};
+  return {
+    get length() {
+      return Object.keys(store).length;
+    },
+    clear() {
+      store = {};
+    },
+    getItem(key: string) {
+      return Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null;
+    },
+    setItem(key: string, value: string) {
+      store[key] = String(value);
+    },
+    removeItem(key: string) {
+      delete store[key];
+    },
+    key(index: number) {
+      const keys = Object.keys(store);
+      return keys[index] ?? null;
+    },
+  } as Storage;
+};
+
+(() => {
+  const ls = globalThis.localStorage as Storage | undefined;
+  if (ls && typeof ls.clear === "function") {
+    return;
+  }
+  const mock = createLocalStorageMock();
+  vi.stubGlobal("localStorage", mock);
+  Object.defineProperty(window, "localStorage", {
+    value: mock,
+    writable: true,
+    configurable: true,
+  });
+})();
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({

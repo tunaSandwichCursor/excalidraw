@@ -55,11 +55,12 @@ import {
   isTextElement,
 } from "./typeChecks";
 
-import { aabbForElement, elementCenterPoint } from "./bounds";
+import { aabbForElement, elementCenterPoint, getStarPoints } from "./bounds";
 import { updateElbowArrowPoints } from "./elbowArrow";
 import {
   deconstructDiamondElement,
   deconstructRectanguloidElement,
+  deconstructStarElement,
   projectFixedPointOntoDiagonal,
 } from "./utils";
 
@@ -1660,7 +1661,7 @@ export const snapToMid = (
       center,
       angle,
     );
-  } else if (bindTarget.type === "diamond") {
+  } else if (bindTarget.type === "diamond" || bindTarget.type === "star") {
     const distance = bindingGap;
     const topLeft = pointFrom<GlobalPoint>(
       x + width / 4 - distance,
@@ -1679,29 +1680,44 @@ export const snapToMid = (
       y + (3 * height) / 4 + distance,
     );
 
-    if (
-      pointDistance(topLeft, nonRotated) <
-      Math.max(horizontalThreshold, verticalThreshold)
-    ) {
-      return pointRotateRads(topLeft, center, angle);
-    }
-    if (
-      pointDistance(topRight, nonRotated) <
-      Math.max(horizontalThreshold, verticalThreshold)
-    ) {
-      return pointRotateRads(topRight, center, angle);
-    }
-    if (
-      pointDistance(bottomLeft, nonRotated) <
-      Math.max(horizontalThreshold, verticalThreshold)
-    ) {
-      return pointRotateRads(bottomLeft, center, angle);
-    }
-    if (
-      pointDistance(bottomRight, nonRotated) <
-      Math.max(horizontalThreshold, verticalThreshold)
-    ) {
-      return pointRotateRads(bottomRight, center, angle);
+    if (bindTarget.type === "diamond") {
+      if (
+        pointDistance(topLeft, nonRotated) <
+        Math.max(horizontalThreshold, verticalThreshold)
+      ) {
+        return pointRotateRads(topLeft, center, angle);
+      }
+      if (
+        pointDistance(topRight, nonRotated) <
+        Math.max(horizontalThreshold, verticalThreshold)
+      ) {
+        return pointRotateRads(topRight, center, angle);
+      }
+      if (
+        pointDistance(bottomLeft, nonRotated) <
+        Math.max(horizontalThreshold, verticalThreshold)
+      ) {
+        return pointRotateRads(bottomLeft, center, angle);
+      }
+      if (
+        pointDistance(bottomRight, nonRotated) <
+        Math.max(horizontalThreshold, verticalThreshold)
+      ) {
+        return pointRotateRads(bottomRight, center, angle);
+      }
+    } else {
+      const tips = getStarPoints(bindTarget).filter(
+        (_pt, idx) => idx % 2 === 0,
+      );
+      for (const [lx, ly] of tips) {
+        const tip = pointFrom<GlobalPoint>(x + lx, y + ly);
+        if (
+          pointDistance(tip, nonRotated) <
+          Math.max(horizontalThreshold, verticalThreshold)
+        ) {
+          return pointRotateRads(tip, center, angle);
+        }
+      }
     }
   }
 
@@ -2517,10 +2533,16 @@ type Side =
   | "bottom-left"
   | "left"
   | "top-left";
-type ShapeType = "rectangle" | "ellipse" | "diamond";
+type ShapeType = "rectangle" | "ellipse" | "diamond" | "star";
 const getShapeType = (element: ExcalidrawBindableElement): ShapeType => {
-  if (element.type === "ellipse" || element.type === "diamond") {
-    return element.type;
+  if (element.type === "ellipse") {
+    return "ellipse";
+  }
+  if (element.type === "diamond") {
+    return "diamond";
+  }
+  if (element.type === "star") {
+    return "star";
   }
   return "rectangle";
 };
@@ -2561,6 +2583,18 @@ const SHAPE_CONFIGS: Record<ShapeType, SectorConfig[]> = {
 
   // ellipse: 15° cardinal points, 75° diagonals
   ellipse: [
+    { centerAngle: 0, sectorWidth: 15, side: "right" },
+    { centerAngle: 45, sectorWidth: 75, side: "bottom-right" },
+    { centerAngle: 90, sectorWidth: 15, side: "bottom" },
+    { centerAngle: 135, sectorWidth: 75, side: "bottom-left" },
+    { centerAngle: 180, sectorWidth: 15, side: "left" },
+    { centerAngle: 225, sectorWidth: 75, side: "top-left" },
+    { centerAngle: 270, sectorWidth: 15, side: "top" },
+    { centerAngle: 315, sectorWidth: 75, side: "top-right" },
+  ],
+
+  // star: same sector layout as ellipse for fixed-point side resolution
+  star: [
     { centerAngle: 0, sectorWidth: 15, side: "right" },
     { centerAngle: 45, sectorWidth: 75, side: "bottom-right" },
     { centerAngle: 90, sectorWidth: 15, side: "bottom" },
@@ -2757,6 +2791,48 @@ export const getBindingSideMidPoint = (
       }
     }
 
+    return pointRotateRads(pointFrom(x, y), center, bindableElement.angle);
+  }
+
+  if (bindableElement.type === "star") {
+    const [segments] = deconstructStarElement(bindableElement);
+    const sideAngleTarget: Record<Side, number> = {
+      right: 0,
+      "bottom-right": 45,
+      bottom: 90,
+      "bottom-left": 135,
+      left: 180,
+      "top-left": 225,
+      top: 270,
+      "top-right": 315,
+    };
+    const targetDeg = sideAngleTarget[side];
+    let bestMid: GlobalPoint | null = null;
+    let bestDiff = Infinity;
+    for (const seg of segments) {
+      const mid = getMidPoint(seg[0], seg[1]);
+      let ang = Math.atan2(mid[1] - center[1], mid[0] - center[0]);
+      if (ang < 0) {
+        ang += 2 * Math.PI;
+      }
+      const midDeg = (ang * 180) / Math.PI;
+      let diff = Math.abs(midDeg - targetDeg);
+      if (diff > 180) {
+        diff = 360 - diff;
+      }
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestMid = mid;
+      }
+    }
+    if (!bestMid) {
+      return null;
+    }
+    const nx = bestMid[0] - center[0];
+    const ny = bestMid[1] - center[1];
+    const nlen = Math.hypot(nx, ny) || 1;
+    const x = bestMid[0] + (nx / nlen) * OFFSET;
+    const y = bestMid[1] + (ny / nlen) * OFFSET;
     return pointRotateRads(pointFrom(x, y), center, bindableElement.angle);
   }
 

@@ -35,6 +35,14 @@ const customQueries = {
   ...toolQueries,
 };
 
+if (typeof customQueries.getByToolName !== "function") {
+  throw new Error(
+    `test-utils: getByToolName missing (toolQueries keys: ${Object.keys(
+      toolQueries,
+    ).join(", ")})`,
+  );
+}
+
 type TestRenderFn = (
   ui: React.ReactElement,
   options?: Omit<
@@ -47,6 +55,8 @@ const renderApp: TestRenderFn = async (ui, options) => {
   // when tests reuse Pointer instances let's reset the last
   // pointer poisitions so there's no leak between tests
   Pointer.resetAll();
+  const __isExcalidrawTestRender = true;
+ void __isExcalidrawTestRender;
 
   if (options?.localStorageData) {
     initLocalStorage(options.localStorageData);
@@ -96,6 +106,12 @@ const renderApp: TestRenderFn = async (ui, options) => {
       throw new Error("still loading");
     }
   });
+
+  if (typeof renderResult.getByToolName !== "function") {
+    throw new Error(
+      `render() missing getByToolName; keys: ${Object.keys(renderResult).join(", ")}`,
+    );
+  }
 
   return renderResult;
 };

@@ -48,6 +48,10 @@ export const diamondFixture: ExcalidrawElement = {
   ...elementBase,
   type: "diamond",
 };
+export const starFixture: ExcalidrawElement = {
+  ...elementBase,
+  type: "star",
+};
 export const rectangleWithLinkFixture: ExcalidrawElement = {
   ...elementBase,
   type: "rectangle",

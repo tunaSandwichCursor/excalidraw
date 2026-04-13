@@ -203,6 +203,24 @@ export class ElementBounds {
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
       bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      const localPoints = getStarPoints(element);
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const [lx, ly] of localPoints) {
+        const [rx, ry] = pointRotateRads(
+          pointFrom(element.x + lx, element.y + ly),
+          pointFrom(cx, cy),
+          element.angle,
+        );
+        minX = Math.min(minX, rx);
+        minY = Math.min(minY, ry);
+        maxX = Math.max(maxX, rx);
+        maxY = Math.max(maxY, ry);
+      }
+      bounds = [minX, minY, maxX, maxY];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
       const h = (y2 - y1) / 2;
@@ -369,6 +387,20 @@ export const getElementLineSegments = (
     const rotatedSides = getRotatedSides(sides, center, element.angle);
 
     return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "star") {
+    const localPts = getStarPoints(element);
+    const { x, y } = element;
+    const sides: LineSegment<GlobalPoint>[] = [];
+    for (let i = 0; i < localPts.length; i++) {
+      const j = (i + 1) % localPts.length;
+      sides.push(
+        lineSegment(
+          pointFrom(x + localPts[i][0], y + localPts[i][1]),
+          pointFrom(x + localPts[j][0], y + localPts[j][1]),
+        ),
+      );
+    }
+    return getRotatedSides(sides, center, element.angle);
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
@@ -520,6 +552,45 @@ export const getRectangleBoxAbsoluteCoords = (boxSceneCoords: RectangleBox) => {
     boxSceneCoords.x + boxSceneCoords.width / 2,
     boxSceneCoords.y + boxSceneCoords.height / 2,
   ];
+};
+
+/** Inner vertex radius as a fraction of outer radius (classic 5-pointed star). */
+export const STAR_INNER_RADIUS_RATIO = 0.38;
+
+/** Local (element) coordinates for a 5-pointed star polygon vertices. */
+export const getStarPoints = (
+  element: ExcalidrawElement,
+  offset: number = 0,
+): [number, number][] => {
+  const w = element.width;
+  const h = element.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  let outerRx = w / 2;
+  let outerRy = h / 2;
+  let innerRx = outerRx * STAR_INNER_RADIUS_RATIO;
+  let innerRy = outerRy * STAR_INNER_RADIUS_RATIO;
+  if (offset !== 0 && w > 0 && h > 0) {
+    const scale = 1 + (2 * offset) / Math.min(w, h);
+    outerRx *= scale;
+    outerRy *= scale;
+    innerRx *= scale;
+    innerRy *= scale;
+  }
+  const points: [number, number][] = [];
+  for (let i = 0; i < 5; i++) {
+    const outerAngle = -Math.PI / 2 + (2 * Math.PI * i) / 5;
+    points.push([
+      cx + outerRx * Math.cos(outerAngle),
+      cy + outerRy * Math.sin(outerAngle),
+    ]);
+    const innerAngle = outerAngle + Math.PI / 5;
+    points.push([
+      cx + innerRx * Math.cos(innerAngle),
+      cy + innerRy * Math.sin(innerAngle),
+    ]);
+  }
+  return points;
 };
 
 export const getDiamondPoints = (element: ExcalidrawElement) => {

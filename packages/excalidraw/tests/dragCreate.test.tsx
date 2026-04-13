@@ -37,7 +37,15 @@ const { h } = window;
 describe("Test dragCreate", () => {
   describe("add element to the scene when pointer dragging long enough", () => {
     it("rectangle", async () => {
-      const { getByToolName, container } = await render(<Excalidraw />);
+      const renderResult = await render(<Excalidraw />);
+      // eslint-disable-next-line no-console
+      console.log(
+        "render debug",
+        "getByToolName" in renderResult,
+        typeof renderResult.getByToolName,
+        Object.keys(renderResult).length,
+      );
+      const { getByToolName, container } = renderResult;
       // select tool
       const tool = getByToolName("rectangle");
       fireEvent.click(tool);
