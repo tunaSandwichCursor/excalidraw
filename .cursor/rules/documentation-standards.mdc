@@ -1,35 +1,24 @@
 ---
-description: Mandatory TSDoc file headers for TypeScript/TSX files
-globs: **/*.{ts,tsx}
-alwaysApply: false
+title: Mandatory TSDoc Header
+description: Add a TSDoc comment block at the top of every created or modified TypeScript or TSX file.
+globs:
+  - "**/*.{ts,tsx}"
+alwaysApply: true
 ---
 
-# Documentation Standards — Mandatory
+# Mandatory TSDoc Header
 
-Every created or modified TypeScript/TSX file must have a TSDoc header at the top of the file.
+For every created or modified `.ts` or `.tsx` file, ensure the file starts with a TSDoc comment block at the very top of the file.
 
-## Required header
+## Required header format
 
 ```typescript
 /**
- * @module ModuleName
- * @description Brief description of the module purpose.
+ * @module <ModuleName>
+ * @description <Brief description of the module purpose>
  * @packageDocumentation
  *
- * Key exports: ExportA, ExportB
- * Consumed by: @excalidraw/excalidraw
- * Part of: @excalidraw/math
+ * Key exports: <ExportA, ExportB>
+ * Consumed by: <package or app name>
+ * Part of: <parent package or subsystem>
  */
-```
-
-The block must include:
-- `@module` — the module name
-- `@description` — the module purpose
-- `@packageDocumentation`
-- Key exports
-- Which package consumes this module
-- Parent package relationship (e.g. "Part of @excalidraw/math")
-
-## Completion check
-
-Before finishing any task, verify every touched `.ts`/`.tsx` file has this header. If any is missing, add it. Do not skip this even if the user does not mention documentation.
