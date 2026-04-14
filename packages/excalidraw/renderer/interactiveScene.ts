@@ -24,6 +24,7 @@ import {
   deconstructDiamondElement,
   deconstructRectanguloidElement,
   elementCenterPoint,
+  getStarPointsLocal,
   getDiamondBaseCorners,
   FOCUS_POINT_SIZE,
   getOmitSidesForEditorInterface,
@@ -365,6 +366,21 @@ const renderBindingHighlightForBindableElement_simple = (
           }
 
           break;
+        case "star":
+          {
+            const verts = getStarPointsLocal(
+              suggestedBinding.element.width,
+              suggestedBinding.element.height,
+            );
+            verts.forEach((v, i) => {
+              const w = verts[(i + 1) % verts.length];
+              context.beginPath();
+              context.moveTo(v[0], v[1]);
+              context.lineTo(w[0], w[1]);
+              context.stroke();
+            });
+          }
+          break;
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -461,6 +477,26 @@ const renderBindingHighlightForBindableElement_simple = (
             return pointFrom<GlobalPoint>(rotatedPoint[0], rotatedPoint[1]);
           },
         );
+      } else if (suggestedBinding.element.type === "star") {
+        const center = elementCenterPoint(
+          suggestedBinding.element,
+          elementsMap,
+        );
+        const verts = getStarPointsLocal(
+          suggestedBinding.element.width,
+          suggestedBinding.element.height,
+        );
+        midpoints = verts.map((v, i) => {
+          const w = verts[(i + 1) % verts.length];
+          const mx = suggestedBinding.element.x + (v[0] + w[0]) / 2;
+          const my = suggestedBinding.element.y + (v[1] + w[1]) / 2;
+          const rotated = pointRotateRads(
+            pointFrom(mx, my),
+            center,
+            suggestedBinding.element.angle,
+          );
+          return pointFrom<GlobalPoint>(rotated[0], rotated[1]);
+        });
       } else {
         const basePoints = [
           {
@@ -706,6 +742,18 @@ const renderBindingHighlightForBindableElement_complex = (
             });
           }
 
+          break;
+        case "star":
+          {
+            const verts = getStarPointsLocal(element.width, element.height);
+            verts.forEach((v, i) => {
+              const w = verts[(i + 1) % verts.length];
+              context.beginPath();
+              context.moveTo(v[0] + offset, v[1] + offset);
+              context.lineTo(w[0] + offset, w[1] + offset);
+              context.stroke();
+            });
+          }
           break;
         default:
           {

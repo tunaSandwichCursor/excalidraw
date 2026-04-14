@@ -26,7 +26,7 @@ import type { AppState } from "@excalidraw/excalidraw/types";
 import type { MapEntry, Mutable } from "@excalidraw/common/utility-types";
 import type { Bounds } from "@excalidraw/common";
 
-import { getCenterForBounds } from "./bounds";
+import { getCenterForBounds, getStarPointsLocal } from "./bounds";
 import {
   getAllHoveredElementAtPoint,
   getHoveredElementForBinding,
@@ -2517,8 +2517,60 @@ type Side =
   | "bottom-left"
   | "left"
   | "top-left";
+
+const getLocalUnitVectorForBindingSide = (side: Side): LocalPoint => {
+  const invSqrt2 = 1 / Math.sqrt(2);
+  switch (side) {
+    case "right":
+      return pointFrom(1, 0);
+    case "left":
+      return pointFrom(-1, 0);
+    case "bottom":
+      return pointFrom(0, 1);
+    case "top":
+      return pointFrom(0, -1);
+    case "bottom-right":
+      return pointFrom(invSqrt2, invSqrt2);
+    case "bottom-left":
+      return pointFrom(-invSqrt2, invSqrt2);
+    case "top-right":
+      return pointFrom(invSqrt2, -invSqrt2);
+    case "top-left":
+      return pointFrom(-invSqrt2, -invSqrt2);
+    default:
+      return pointFrom(1, 0);
+  }
+};
+
+const intersectStarRayWithSegment = (
+  ox: number,
+  oy: number,
+  dx: number,
+  dy: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): { t: number; x: number; y: number } | null => {
+  const sx = x2 - x1;
+  const sy = y2 - y1;
+  const det = dx * sy - dy * sx;
+  if (Math.abs(det) < 1e-12) {
+    return null;
+  }
+  const t = ((x1 - ox) * sy - (y1 - oy) * sx) / det;
+  const u = ((x1 - ox) * dy - (y1 - oy) * dx) / det;
+  if (t >= -1e-8 && u >= -1e-8 && u <= 1 + 1e-8) {
+    return { t, x: ox + t * dx, y: oy + t * dy };
+  }
+  return null;
+};
+
 type ShapeType = "rectangle" | "ellipse" | "diamond";
 const getShapeType = (element: ExcalidrawBindableElement): ShapeType => {
+  if (element.type === "star") {
+    return "diamond";
+  }
   if (element.type === "ellipse" || element.type === "diamond") {
     return element.type;
   }
@@ -2664,6 +2716,42 @@ export const getBindingSideMidPoint = (
 
   // small offset to avoid precision issues in elbow
   const OFFSET = 0.01;
+
+  if (bindableElement.type === "star") {
+    const { x, y, width, height, angle } = bindableElement;
+    const localCenterX = width / 2;
+    const localCenterY = height / 2;
+    const dir = getLocalUnitVectorForBindingSide(side);
+    const verts = getStarPointsLocal(width, height);
+    let bestT = Infinity;
+    let bestLocal: LocalPoint | null = null;
+    for (let i = 0; i < verts.length; i++) {
+      const a = verts[i];
+      const b = verts[(i + 1) % verts.length];
+      const hit = intersectStarRayWithSegment(
+        localCenterX,
+        localCenterY,
+        dir[0],
+        dir[1],
+        a[0],
+        a[1],
+        b[0],
+        b[1],
+      );
+      if (hit && hit.t >= -1e-8 && hit.t < bestT) {
+        bestT = hit.t;
+        bestLocal = pointFrom<LocalPoint>(hit.x, hit.y);
+      }
+    }
+    if (!bestLocal) {
+      return null;
+    }
+    const globalUnrotated = pointFrom<GlobalPoint>(
+      x + bestLocal[0],
+      y + bestLocal[1],
+    );
+    return pointRotateRads(globalUnrotated, center, angle);
+  }
 
   if (bindableElement.type === "diamond") {
     const [sides, corners] = deconstructDiamondElement(bindableElement);

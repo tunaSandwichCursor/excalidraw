@@ -211,6 +211,25 @@ export class ElementBounds {
       const ww = Math.hypot(w * cos, h * sin);
       const hh = Math.hypot(h * cos, w * sin);
       bounds = [cx - ww, cy - hh, cx + ww, cy + hh];
+    } else if (element.type === "star") {
+      const local = getStarPointsLocal(element.width, element.height);
+      const xs: number[] = [];
+      const ys: number[] = [];
+      for (const p of local) {
+        const gp = pointRotateRads(
+          pointFrom(element.x + p[0], element.y + p[1]),
+          pointFrom(cx, cy),
+          element.angle,
+        );
+        xs.push(gp[0]);
+        ys.push(gp[1]);
+      }
+      bounds = [
+        Math.min(...xs),
+        Math.min(...ys),
+        Math.max(...xs),
+        Math.max(...ys),
+      ];
     } else {
       const [x11, y11] = pointRotateRads(
         pointFrom(x1, y1),
@@ -535,6 +554,34 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+/** Inner radius as a fraction of outer radius for the default 5-point star. */
+export const STAR_INNER_RADIUS_RATIO = 0.5;
+
+/**
+ * 10-point star vertices in element-local coordinates (origin top-left of bbox).
+ */
+export const getStarPointsLocal = (
+  width: number,
+  height: number,
+): LocalPoint[] => {
+  const cx = width / 2;
+  const cy = height / 2;
+  const outerRx = width / 2;
+  const outerRy = height / 2;
+  const innerRx = outerRx * STAR_INNER_RADIUS_RATIO;
+  const innerRy = outerRy * STAR_INNER_RADIUS_RATIO;
+  const points: LocalPoint[] = [];
+  for (let i = 0; i < 10; i++) {
+    const theta = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rx = i % 2 === 0 ? outerRx : innerRx;
+    const ry = i % 2 === 0 ? outerRy : innerRy;
+    points.push(
+      pointFrom(cx + rx * Math.cos(theta), cy + ry * Math.sin(theta)),
+    );
+  }
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes

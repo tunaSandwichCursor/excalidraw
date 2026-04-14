@@ -35,6 +35,7 @@ import {
   getCubicBezierCurveBound,
   getDiamondPoints,
   getElementBounds,
+  getStarPointsLocal,
   pointInsideBounds,
 } from "./bounds";
 import {
@@ -71,6 +72,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
   NonDeleted,
   NonDeletedExcalidrawElement,
   NonDeletedSceneElementsMap,
@@ -466,6 +468,14 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectStarWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -659,6 +669,42 @@ const intersectRectanguloidWithLineSegment = (
  * @param b
  * @returns
  */
+const intersectStarWithLineSegment = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  _offset: number = 0,
+  onlyFirst = false,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+  const rotatedIntersector = lineSegment(rotatedA, rotatedB);
+  const verts = getStarPointsLocal(element.width, element.height);
+  const { x: ox, y: oy } = element;
+  const intersections: GlobalPoint[] = [];
+
+  for (let i = 0; i < verts.length; i++) {
+    const p1 = pointFrom<GlobalPoint>(ox + verts[i][0], oy + verts[i][1]);
+    const p2 = pointFrom<GlobalPoint>(
+      ox + verts[(i + 1) % verts.length][0],
+      oy + verts[(i + 1) % verts.length][1],
+    );
+    const hit = lineSegmentIntersectionPoints(
+      rotatedIntersector,
+      lineSegment(p1, p2),
+    );
+    if (hit) {
+      intersections.push(pointRotateRads(hit, center, element.angle));
+      if (onlyFirst) {
+        return intersections;
+      }
+    }
+  }
+
+  return intersections;
+};
+
 const intersectDiamondWithLineSegment = (
   element: ExcalidrawDiamondElement,
   elementsMap: ElementsMap,
@@ -823,6 +869,18 @@ export const isBindableElementInsideOtherBindable = (
         pointFrom(cx - rx - offset, cy), // left
       ];
       return corners.map((corner) => pointRotateRads(corner, center, angle));
+    }
+    if (element.type === "star") {
+      const verts = getStarPointsLocal(width, height);
+      return verts.map((p): GlobalPoint => {
+        const vx = p[0] - width / 2;
+        const vy = p[1] - height / 2;
+        const len = Math.hypot(vx, vy) || 1;
+        const ox = (offset * vx) / len;
+        const oy = (offset * vy) / len;
+        const corner = pointFrom<GlobalPoint>(x + p[0] + ox, y + p[1] + oy);
+        return pointRotateRads(corner, center, angle);
+      });
     }
     // Rectangle and other rectangular shapes (image, text, etc.)
     const corners: GlobalPoint[] = [

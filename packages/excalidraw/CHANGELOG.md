@@ -13,6 +13,10 @@ Please add the latest change on the top under the correct section.
 
 ## Unreleased
 
+### Features
+
+- Added **Star** as a new generic shape: toolbar (desktop and mobile), keyboard shortcut **W**, convert-shape support, arrow binding, bound text containers, SVG/canvas rendering, and programmatic creation via `convertToExcalidrawElements` with `type: "star"`.
+
 ## Excalidraw API
 
 ### Breaking changes
