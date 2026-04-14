@@ -673,7 +673,7 @@ const intersectStarWithLineSegment = (
   element: ExcalidrawStarElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
-  _offset: number = 0,
+  offset: number = 0,
   onlyFirst = false,
 ): GlobalPoint[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -682,14 +682,17 @@ const intersectStarWithLineSegment = (
   const rotatedIntersector = lineSegment(rotatedA, rotatedB);
   const verts = getStarPointsLocal(element.width, element.height);
   const { x: ox, y: oy } = element;
+  const cx = element.width / 2;
+  const cy = element.height / 2;
   const intersections: GlobalPoint[] = [];
 
   for (let i = 0; i < verts.length; i++) {
-    const p1 = pointFrom<GlobalPoint>(ox + verts[i][0], oy + verts[i][1]);
-    const p2 = pointFrom<GlobalPoint>(
-      ox + verts[(i + 1) % verts.length][0],
-      oy + verts[(i + 1) % verts.length][1],
-    );
+    const v1 = verts[i];
+    const v2 = verts[(i + 1) % verts.length];
+
+    const p1 = applyStarOffset(v1, cx, cy, offset, ox, oy);
+    const p2 = applyStarOffset(v2, cx, cy, offset, ox, oy);
+
     const hit = lineSegmentIntersectionPoints(
       rotatedIntersector,
       lineSegment(p1, p2),
@@ -703,6 +706,29 @@ const intersectStarWithLineSegment = (
   }
 
   return intersections;
+};
+
+const applyStarOffset = (
+  vertex: readonly [number, number],
+  cx: number,
+  cy: number,
+  offset: number,
+  ox: number,
+  oy: number,
+): GlobalPoint => {
+  if (offset === 0) {
+    return pointFrom<GlobalPoint>(ox + vertex[0], oy + vertex[1]);
+  }
+  const dx = vertex[0] - cx;
+  const dy = vertex[1] - cy;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist === 0) {
+    return pointFrom<GlobalPoint>(ox + vertex[0], oy + vertex[1]);
+  }
+  return pointFrom<GlobalPoint>(
+    ox + vertex[0] + (dx / dist) * offset,
+    oy + vertex[1] + (dy / dist) * offset,
+  );
 };
 
 const intersectDiamondWithLineSegment = (
