@@ -1,15 +1,15 @@
 ---
-alwaysApply: true
----
-
----
 description: Use TSDoc format when asked to add code comments
 globs: **/*.{ts,tsx}
-alwaysApply: false
+alwaysApply: true
 ---
 
 # TSDoc Commenting
 
 When the user asks to add comments about file contents, write comments in TSDoc format.
-Prefer `/** ... */` blocks with `@param`, `@returns`, and `@remarks` when relevant.
-Do not add redundant comments; only document non-obvious behavior.
+
+- Use `/** ... */` doc-comment blocks
+- Include `@remarks` for file/module-level summaries
+- Include `@param` and `@returns` on every function/method
+- Use `@example` when a usage snippet would clarify intent
+- Do not add redundant comments that restate obvious code
