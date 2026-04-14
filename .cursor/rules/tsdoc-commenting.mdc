@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---
+
+---
+description: Use TSDoc format when asked to add code comments
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TSDoc Commenting
+
+When the user asks to add comments about file contents, write comments in TSDoc format.
+Prefer `/** ... */` blocks with `@param`, `@returns`, and `@remarks` when relevant.
+Do not add redundant comments; only document non-obvious behavior.
