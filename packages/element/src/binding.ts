@@ -60,6 +60,7 @@ import { updateElbowArrowPoints } from "./elbowArrow";
 import {
   deconstructDiamondElement,
   deconstructRectanguloidElement,
+  deconstructStarElement,
   projectFixedPointOntoDiagonal,
 } from "./utils";
 
@@ -1660,7 +1661,7 @@ export const snapToMid = (
       center,
       angle,
     );
-  } else if (bindTarget.type === "diamond") {
+  } else if (bindTarget.type === "diamond" || bindTarget.type === "star") {
     const distance = bindingGap;
     const topLeft = pointFrom<GlobalPoint>(
       x + width / 4 - distance,
@@ -2642,6 +2643,18 @@ const getShapeSideAdaptive = (
   return nearestSide;
 };
 
+/** Unit direction in element-local space for adaptive binding sides (star). */
+const STAR_BINDING_SIDE_UNIT: Record<Side, readonly [number, number]> = {
+  top: [0, -1],
+  "top-right": [1 / Math.SQRT2, -1 / Math.SQRT2],
+  right: [1, 0],
+  "bottom-right": [1 / Math.SQRT2, 1 / Math.SQRT2],
+  bottom: [0, 1],
+  "bottom-left": [-1 / Math.SQRT2, 1 / Math.SQRT2],
+  left: [-1, 0],
+  "top-left": [-1 / Math.SQRT2, -1 / Math.SQRT2],
+};
+
 export const getBindingSideMidPoint = (
   binding: FixedPointBinding,
   elementsMap: ElementsMap,
@@ -2757,6 +2770,35 @@ export const getBindingSideMidPoint = (
       }
     }
 
+    return pointRotateRads(pointFrom(x, y), center, bindableElement.angle);
+  }
+
+  if (bindableElement.type === "star") {
+    const [segments] = deconstructStarElement(bindableElement);
+    const cos = Math.cos(bindableElement.angle);
+    const sin = Math.sin(bindableElement.angle);
+    const lx = STAR_BINDING_SIDE_UNIT[side][0];
+    const ly = STAR_BINDING_SIDE_UNIT[side][1];
+    const tx = lx * cos - ly * sin;
+    const ty = lx * sin + ly * cos;
+    let bestMid = getMidPoint(segments[0][0], segments[0][1]);
+    let bestScore = -Infinity;
+    for (const seg of segments) {
+      const mid = getMidPoint(seg[0], seg[1]);
+      const vx = mid[0] - center[0];
+      const vy = mid[1] - center[1];
+      const len = Math.hypot(vx, vy) || 1;
+      const dot = (vx / len) * tx + (vy / len) * ty;
+      if (dot > bestScore) {
+        bestScore = dot;
+        bestMid = mid;
+      }
+    }
+    const mx = bestMid[0] - center[0];
+    const my = bestMid[1] - center[1];
+    const mlen = Math.hypot(mx, my) || 1;
+    const x = bestMid[0] + (mx / mlen) * OFFSET;
+    const y = bestMid[1] + (my / mlen) * OFFSET;
     return pointRotateRads(pointFrom(x, y), center, bindableElement.angle);
   }
 

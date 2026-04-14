@@ -12,6 +12,7 @@ import {
   deconstructDiamondElement,
   deconstructLinearOrFreeDrawElement,
   deconstructRectanguloidElement,
+  deconstructStarElement,
 } from "./utils";
 
 import { elementCenterPoint } from "./bounds";
@@ -19,6 +20,7 @@ import { elementCenterPoint } from "./bounds";
 import type {
   ElementsMap,
   ExcalidrawDiamondElement,
+  ExcalidrawStarElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
@@ -43,6 +45,8 @@ export const distanceToElement = (
       return distanceToRectanguloidElement(element, elementsMap, p);
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
+    case "star":
+      return distanceToStarElement(element, elementsMap, p);
     case "ellipse":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
@@ -89,6 +93,25 @@ const distanceToRectanguloidElement = (
  * @param p The point to consider
  * @returns The eucledian distance to the outline of the diamond
  */
+const distanceToStarElement = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  p: GlobalPoint,
+): number => {
+  const center = elementCenterPoint(element, elementsMap);
+
+  const rotatedPoint = pointRotateRads(p, center, -element.angle as Radians);
+
+  const [sides, curves] = deconstructStarElement(element);
+
+  return Math.min(
+    ...sides.map((s) => distanceToLineSegment(rotatedPoint, s)),
+    ...curves
+      .map((a) => curvePointDistance(a, rotatedPoint))
+      .filter((d): d is number => d !== null),
+  );
+};
+
 const distanceToDiamondElement = (
   element: ExcalidrawDiamondElement,
   elementsMap: ElementsMap,

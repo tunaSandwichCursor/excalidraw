@@ -34,7 +34,10 @@ import {
   type LocalPoint,
 } from "@excalidraw/math";
 
-import { getElementAbsoluteCoords } from "@excalidraw/element";
+import {
+  getElementAbsoluteCoords,
+  getStarLocalPoints,
+} from "@excalidraw/element";
 
 import type {
   ElementsMap,
@@ -50,6 +53,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawRectangleElement,
   ExcalidrawSelectionElement,
+  ExcalidrawStarElement,
   ExcalidrawTextElement,
 } from "@excalidraw/element/types";
 import type { Curve, LineSegment, Polygon, Radians } from "@excalidraw/math";
@@ -105,6 +109,7 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> =
 type RectangularElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
@@ -131,6 +136,16 @@ export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
       pointRotateRads(pointFrom(x + width, cy), center, angle),
       pointRotateRads(pointFrom(cx, y + height), center, angle),
       pointRotateRads(pointFrom(x, cy), center, angle),
+    );
+  } else if (element.type === "star") {
+    data = polygonFromPoints(
+      getStarLocalPoints(element).map((p) =>
+        pointRotateRads(
+          pointFrom(x + p[0], y + p[1]),
+          center,
+          angle,
+        ),
+      ),
     );
   } else {
     data = polygon(

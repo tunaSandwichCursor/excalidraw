@@ -497,6 +497,36 @@ describe("restoreElements", () => {
     });
   });
 
+  it("should restore star element", () => {
+    const element = API.createElement({
+      type: "star",
+      fillStyle: "cross-hatch",
+      strokeWidth: 2,
+      strokeStyle: "dashed",
+      roughness: 2,
+      opacity: 10,
+      x: 10,
+      y: 20,
+      strokeColor: "red",
+      backgroundColor: "blue",
+      width: 100,
+      height: 200,
+      groupIds: ["1", "2", "3"],
+      roundness: null,
+    });
+
+    const restoredElements = restore.restoreElements([element], null);
+
+    expect(restoredElements).toHaveLength(1);
+    expect(restoredElements[0].type).toBe("star");
+    expect(restoredElements[0]).toMatchObject({
+      width: 100,
+      height: 200,
+      strokeColor: "red",
+      backgroundColor: "blue",
+    });
+  });
+
   it("bump versions of local duplicate elements when supplied", () => {
     const rectangle = API.createElement({ type: "rectangle" }); // version=1
     const ellipse = API.createElement({ type: "ellipse" });

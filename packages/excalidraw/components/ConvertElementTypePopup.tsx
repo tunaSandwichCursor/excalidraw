@@ -68,6 +68,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawRectangleElement,
   ExcalidrawSelectionElement,
+  ExcalidrawStarElement,
   ExcalidrawTextContainer,
   ExcalidrawTextElementWithContainer,
   FixedSegment,
@@ -86,6 +87,7 @@ import {
   EllipseIcon,
   LineIcon,
   RectangleIcon,
+  StarIcon,
   roundArrowIcon,
   sharpArrowIcon,
 } from "./icons";
@@ -100,11 +102,12 @@ const GAP_VERTICAL = 10;
 type ExcalidrawConvertibleElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawEllipseElement
   | ExcalidrawLinearElement;
 
 // indicates order of switching
-const GENERIC_TYPES = ["rectangle", "diamond", "ellipse"] as const;
+const GENERIC_TYPES = ["rectangle", "diamond", "star", "ellipse"] as const;
 // indicates order of switching
 const LINEAR_TYPES = [
   "line",
@@ -302,6 +305,7 @@ const Panel = ({
       ? [
           ["rectangle", RectangleIcon],
           ["diamond", DiamondIcon],
+          ["star", StarIcon],
           ["ellipse", EllipseIcon],
         ]
       : [];
@@ -671,6 +675,7 @@ const filterGenericConvetibleElements = (elements: ExcalidrawElement[]) =>
   elements.filter((element) => isConvertibleGenericType(element.type)) as Array<
     | ExcalidrawRectangleElement
     | ExcalidrawDiamondElement
+    | ExcalidrawStarElement
     | ExcalidrawEllipseElement
   >;
 
@@ -838,6 +843,8 @@ const convertElementType = <
                   ? ROUNDNESS.ADAPTIVE_RADIUS
                   : ROUNDNESS.PROPORTIONAL_RADIUS,
               }
+            : targetType === "star"
+            ? null
             : element.roundness,
       }),
     ) as typeof element;

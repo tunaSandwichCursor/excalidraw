@@ -34,7 +34,7 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import { elementCenterPoint, getDiamondPoints, getStarLocalPoints } from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -53,6 +53,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawBindableElement,
   ExcalidrawDiamondElement,
+  ExcalidrawStarElement,
   ExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
@@ -457,6 +458,51 @@ export function deconstructDiamondElement(
 
   const shape = [sides, corners.flat()] as ElementShape;
 
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
+/**
+ * Unrotated star outline as line segments (and no bezier corners).
+ */
+export function deconstructStarElement(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]] {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const localPoints = getStarLocalPoints(element);
+  const globalPoints = localPoints.map((p) => {
+    let x = p[0];
+    let y = p[1];
+    if (offset !== 0) {
+      const vx = x - cx;
+      const vy = y - cy;
+      const len = Math.hypot(vx, vy) || 1;
+      x += (vx / len) * offset;
+      y += (vy / len) * offset;
+    }
+    return pointFrom<GlobalPoint>(element.x + x, element.y + y);
+  });
+
+  const sides: LineSegment<GlobalPoint>[] = [];
+  for (let i = 0; i < globalPoints.length; i++) {
+    sides.push(
+      lineSegment<GlobalPoint>(
+        globalPoints[i]!,
+        globalPoints[(i + 1) % globalPoints.length]!,
+      ),
+    );
+  }
+
+  const shape: ElementShape = [sides, []];
   setElementShapesCacheEntry(element, shape, offset);
 
   return shape;

@@ -52,6 +52,7 @@ import { getElementShape } from "./shape";
 import {
   deconstructDiamondElement,
   deconstructRectanguloidElement,
+  deconstructStarElement,
 } from "./utils";
 
 import type { Drawable, Op } from "roughjs/bin/core";
@@ -202,6 +203,20 @@ export class ElementBounds {
       const minY = Math.min(y11, y12, y22, y21);
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
+      bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      // Rotate around the shape's bounding-box center (not `getElementAbsoluteCoords`
+      // center), which can differ when legacy roundness metadata is present.
+      const rotCx = element.x + element.width / 2;
+      const rotCy = element.y + element.height / 2;
+      const starPoints = getStarLocalPoints(element).map(([lx, ly]) =>
+        pointRotateRads(
+          pointFrom(element.x + lx, element.y + ly),
+          pointFrom(rotCx, rotCy),
+          element.angle,
+        ),
+      );
+      const [minX, minY, maxX, maxY] = getBoundsFromPoints(starPoints);
       bounds = [minX, minY, maxX, maxY];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
@@ -369,6 +384,9 @@ export const getElementLineSegments = (
     const rotatedSides = getRotatedSides(sides, center, element.angle);
 
     return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "star") {
+    const [sides] = deconstructStarElement(element);
+    return getRotatedSides(sides, center, element.angle);
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
@@ -535,6 +553,34 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+/** Inner vertex radius as a fraction of outer for a classic 5-point star. */
+export const STAR_INNER_RADIUS_RATIO = 0.38;
+
+/** Vertices of a 5-point star in element-local coordinates (unrotated). */
+export const getStarLocalPoints = (element: {
+  width: number;
+  height: number;
+}): LocalPoint[] => {
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const Rx = element.width / 2;
+  const Ry = element.height / 2;
+  const points: LocalPoint[] = [];
+  const numPoints = 5;
+  for (let i = 0; i < numPoints * 2; i++) {
+    const angle = -Math.PI / 2 + (i * Math.PI) / numPoints;
+    const isOuter = i % 2 === 0;
+    const r = isOuter ? 1 : STAR_INNER_RADIUS_RATIO;
+    points.push(
+      pointFrom<LocalPoint>(
+        cx + Math.cos(angle) * Rx * r,
+        cy + Math.sin(angle) * Ry * r,
+      ),
+    );
+  }
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes

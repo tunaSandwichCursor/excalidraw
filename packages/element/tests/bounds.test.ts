@@ -100,6 +100,26 @@ describe("getElementBounds", () => {
     expect(y2).toEqual(42.071067811865476);
   });
 
+  it("star", () => {
+    const element = _ce({
+      x: 40,
+      y: 30,
+      w: 20,
+      h: 10,
+      a: 0,
+      t: "star",
+    });
+
+    const [x1, y1, x2, y2] = getElementBounds(element, arrayToMap([element]));
+
+    // Classic 5-point star AABB is slightly tighter than the width/height box
+    // on both axes (tips and valleys do not sit on the rectangle edges).
+    expect(x1).toBeCloseTo(40.489434837048464, 10);
+    expect(y1).toEqual(30);
+    expect(x2).toBeCloseTo(59.510565162951536, 10);
+    expect(y2).toBeCloseTo(39.045084971874736, 10);
+  });
+
   it("ellipse", () => {
     const element = _ce({
       x: 40,

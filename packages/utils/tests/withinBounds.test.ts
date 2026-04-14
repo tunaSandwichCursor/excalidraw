@@ -33,6 +33,18 @@ describe("isElementInsideBBox()", () => {
     expect(isElementInsideBBox(makeElement(10, 10, 90, 90), bbox)).toBe(true);
   });
 
+  it("should treat star using vertex hull for bbox checks", () => {
+    const bbox = makeBBox(0, 0, 100, 100);
+    const star = API.createElement({
+      type: "star",
+      x: 10,
+      y: 10,
+      width: 20,
+      height: 20,
+    });
+    expect(isElementInsideBBox(star, bbox)).toBe(true);
+  });
+
   it("should return false if element is only partially overlapping", () => {
     const bbox = makeBBox(0, 0, 100, 100);
 
