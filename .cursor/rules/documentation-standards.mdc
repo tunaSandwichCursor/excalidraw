@@ -1,9 +1,9 @@
 ---
 title: Mandatory TSDoc Header
-description: Add a TSDoc comment block at the top of every created or modified TypeScript or TSX file.
+description: When user asks about a comment, add a TSDoc comment block at the top of the created or modified TypeScript or TSX file.
 globs:
   - "**/*.{ts,tsx}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Mandatory TSDoc Header
@@ -18,7 +18,4 @@ For every created or modified `.ts` or `.tsx` file, ensure the file starts with 
  * @description <Brief description of the module purpose>
  * @packageDocumentation
  *
- * Key exports: <ExportA, ExportB>
- * Consumed by: <package or app name>
- * Part of: <parent package or subsystem>
  */
