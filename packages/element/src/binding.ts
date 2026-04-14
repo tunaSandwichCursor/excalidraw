@@ -1660,7 +1660,7 @@ export const snapToMid = (
       center,
       angle,
     );
-  } else if (bindTarget.type === "diamond") {
+  } else if (bindTarget.type === "diamond" || bindTarget.type === "star") {
     const distance = bindingGap;
     const topLeft = pointFrom<GlobalPoint>(
       x + width / 4 - distance,
@@ -2519,6 +2519,9 @@ type Side =
   | "top-left";
 type ShapeType = "rectangle" | "ellipse" | "diamond";
 const getShapeType = (element: ExcalidrawBindableElement): ShapeType => {
+  if (element.type === "star") {
+    return "ellipse";
+  }
   if (element.type === "ellipse" || element.type === "diamond") {
     return element.type;
   }
@@ -2760,7 +2763,7 @@ export const getBindingSideMidPoint = (
     return pointRotateRads(pointFrom(x, y), center, bindableElement.angle);
   }
 
-  if (bindableElement.type === "ellipse") {
+  if (bindableElement.type === "ellipse" || bindableElement.type === "star") {
     const ellipseCenterX = bindableElement.x + bindableElement.width / 2;
     const ellipseCenterY = bindableElement.y + bindableElement.height / 2;
     const radiusX = bindableElement.width / 2;

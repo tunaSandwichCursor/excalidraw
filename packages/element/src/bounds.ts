@@ -537,6 +537,35 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
 };
 
+/** Regular pentagram: inner vertex radius / outer vertex radius. */
+export const STAR_INNER_RADIUS_RATIO =
+  Math.sin(Math.PI / 10) / Math.sin((3 * Math.PI) / 10);
+
+/**
+ * Star vertices in element-local coordinates (unrotated), outer tips on the
+ * bounding box mid-edges. Ten points alternating outer / inner.
+ */
+export const getStarPoints = (
+  element: Pick<ExcalidrawElement, "width" | "height">,
+): ReadonlyArray<readonly [number, number]> => {
+  const w = element.width;
+  const h = element.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const rx = Math.max(1e-3, w / 2);
+  const ry = Math.max(1e-3, h / 2);
+  const ratio = STAR_INNER_RADIUS_RATIO;
+  const points: [number, number][] = [];
+  for (let i = 0; i < 10; i++) {
+    const theta = -Math.PI / 2 + (i * Math.PI) / 5;
+    const isOuter = i % 2 === 0;
+    const radX = isOuter ? rx : rx * ratio;
+    const radY = isOuter ? ry : ry * ratio;
+    points.push([cx + Math.cos(theta) * radX, cy + Math.sin(theta) * radY]);
+  }
+  return points;
+};
+
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes
 const getBezierValueForT = (
   t: number,

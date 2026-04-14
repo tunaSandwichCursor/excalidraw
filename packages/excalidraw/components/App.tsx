@@ -9299,6 +9299,7 @@ class App extends React.Component<AppProps, AppState> {
       | "selection"
       | "rectangle"
       | "diamond"
+      | "star"
       | "ellipse"
       | "iframe"
       | "embeddable",
@@ -12219,7 +12220,8 @@ class App extends React.Component<AppProps, AppState> {
         shouldMaintainAspectRatio: isImageElement(newElement)
           ? !shouldMaintainAspectRatio(event)
           : shouldMaintainAspectRatio(event),
-        shouldResizeFromCenter: shouldResizeFromCenter(event),
+        shouldResizeFromCenter:
+          newElement.type === "star" || shouldResizeFromCenter(event),
         zoom: this.state.zoom.value,
         scene: this.scene,
         widthAspectRatio: aspectRatio,

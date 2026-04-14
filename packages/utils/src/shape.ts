@@ -50,6 +50,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawRectangleElement,
   ExcalidrawSelectionElement,
+  ExcalidrawStarElement,
   ExcalidrawTextElement,
 } from "@excalidraw/element/types";
 import type { Curve, LineSegment, Polygon, Radians } from "@excalidraw/math";
@@ -105,6 +106,7 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> =
 type RectangularElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
@@ -132,6 +134,24 @@ export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
       pointRotateRads(pointFrom(cx, y + height), center, angle),
       pointRotateRads(pointFrom(x, cy), center, angle),
     );
+  } else if (element.type === "star") {
+    const ratio = Math.sin(Math.PI / 10) / Math.sin((3 * Math.PI) / 10);
+    const rx = Math.max(1e-6, width / 2);
+    const ry = Math.max(1e-6, height / 2);
+    const verts: Point[] = [];
+    for (let i = 0; i < 10; i++) {
+      const theta = -Math.PI / 2 + (i * Math.PI) / 5;
+      const isOuter = i % 2 === 0;
+      const radX = isOuter ? rx : rx * ratio;
+      const radY = isOuter ? ry : ry * ratio;
+      const lx = width / 2 + Math.cos(theta) * radX;
+      const ly = height / 2 + Math.sin(theta) * radY;
+      verts.push(
+        pointRotateRads(pointFrom(x + lx, y + ly), center, angle) as Point,
+      );
+    }
+    const [v0, v1, ...rest] = verts;
+    data = polygon(v0, v1, ...(rest as Point[]));
   } else {
     data = polygon(
       pointRotateRads(pointFrom(x, y), center, angle),

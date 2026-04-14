@@ -53,7 +53,11 @@ import {
   selectGroupsFromGivenElements,
 } from "@excalidraw/element";
 
-import { getCommonBounds, getElementAbsoluteCoords } from "@excalidraw/element";
+import {
+  getCommonBounds,
+  getElementAbsoluteCoords,
+  getStarPoints,
+} from "@excalidraw/element";
 import {
   getGlobalFixedPointForBindableElement,
   isFocusPointVisible,
@@ -365,6 +369,21 @@ const renderBindingHighlightForBindableElement_simple = (
           }
 
           break;
+        case "star": {
+          const pts = getStarPoints(suggestedBinding.element);
+          context.beginPath();
+          for (let i = 0; i < pts.length; i++) {
+            const [lx, ly] = pts[i];
+            if (i === 0) {
+              context.moveTo(lx, ly);
+            } else {
+              context.lineTo(lx, ly);
+            }
+          }
+          context.closePath();
+          context.stroke();
+          break;
+        }
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -707,6 +726,23 @@ const renderBindingHighlightForBindableElement_complex = (
           }
 
           break;
+        case "star": {
+          const pts = getStarPoints(element);
+          context.beginPath();
+          for (let i = 0; i < pts.length; i++) {
+            const [lx, ly] = pts[i];
+            const px = lx + offset;
+            const py = ly + offset;
+            if (i === 0) {
+              context.moveTo(px, py);
+            } else {
+              context.lineTo(px, py);
+            }
+          }
+          context.closePath();
+          context.stroke();
+          break;
+        }
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(

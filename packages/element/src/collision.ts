@@ -35,6 +35,7 @@ import {
   getCubicBezierCurveBound,
   getDiamondPoints,
   getElementBounds,
+  getStarPoints,
   pointInsideBounds,
 } from "./bounds";
 import {
@@ -67,6 +68,7 @@ import type {
   ExcalidrawBindableElement,
   ExcalidrawDiamondElement,
   ExcalidrawElement,
+  ExcalidrawStarElement,
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
@@ -466,6 +468,14 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectStarWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -659,6 +669,47 @@ const intersectRectanguloidWithLineSegment = (
  * @param b
  * @returns
  */
+const intersectStarWithLineSegment = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  _offset: number = 0,
+  onlyFirst = false,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, elementsMap);
+
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+  const rotatedIntersector = lineSegment(rotatedA, rotatedB);
+
+  const pts = getStarPoints(element);
+  const intersections: GlobalPoint[] = [];
+
+  for (let i = 0; i < pts.length; i++) {
+    const p1 = pointFrom<GlobalPoint>(
+      element.x + pts[i][0],
+      element.y + pts[i][1],
+    );
+    const p2 = pointFrom<GlobalPoint>(
+      element.x + pts[(i + 1) % pts.length][0],
+      element.y + pts[(i + 1) % pts.length][1],
+    );
+    lineIntersections(
+      [lineSegment(p1, p2)],
+      rotatedIntersector,
+      intersections,
+      center,
+      element.angle,
+      onlyFirst,
+    );
+    if (onlyFirst && intersections.length > 0) {
+      return intersections;
+    }
+  }
+
+  return intersections;
+};
+
 const intersectDiamondWithLineSegment = (
   element: ExcalidrawDiamondElement,
   elementsMap: ElementsMap,
@@ -809,6 +860,26 @@ export const isBindableElementInsideOtherBindable = (
         pointFrom(x + leftX - offset, y + leftY), // left
       ];
       return corners.map((corner) => pointRotateRads(corner, center, angle));
+    }
+    if (element.type === "star") {
+      const pts = getStarPoints(element);
+      const outerIndices = [0, 2, 4, 6, 8];
+      return outerIndices.map((i) => {
+        const [lx, ly] = pts[i];
+        const gx = x + lx;
+        const gy = y + ly;
+        const vx = lx - width / 2;
+        const vy = ly - height / 2;
+        const len = Math.hypot(vx, vy) || 1;
+        return pointRotateRads(
+          pointFrom<GlobalPoint>(
+            gx + (vx / len) * offset,
+            gy + (vy / len) * offset,
+          ),
+          center,
+          angle,
+        );
+      });
     }
     if (element.type === "ellipse") {
       // For ellipse, test points at the extremes (top, right, bottom, left)

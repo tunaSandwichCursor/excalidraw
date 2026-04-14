@@ -65,6 +65,7 @@ import type {
   ExcalidrawDiamondElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
+  ExcalidrawStarElement,
   ExcalidrawLinearElement,
   ExcalidrawRectangleElement,
   ExcalidrawSelectionElement,
@@ -88,6 +89,7 @@ import {
   RectangleIcon,
   roundArrowIcon,
   sharpArrowIcon,
+  StarIcon,
 } from "./icons";
 
 import type App from "./App";
@@ -100,11 +102,12 @@ const GAP_VERTICAL = 10;
 type ExcalidrawConvertibleElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawEllipseElement
   | ExcalidrawLinearElement;
 
 // indicates order of switching
-const GENERIC_TYPES = ["rectangle", "diamond", "ellipse"] as const;
+const GENERIC_TYPES = ["rectangle", "diamond", "star", "ellipse"] as const;
 // indicates order of switching
 const LINEAR_TYPES = [
   "line",
@@ -302,6 +305,7 @@ const Panel = ({
       ? [
           ["rectangle", RectangleIcon],
           ["diamond", DiamondIcon],
+          ["star", StarIcon],
           ["ellipse", EllipseIcon],
         ]
       : [];
@@ -671,6 +675,7 @@ const filterGenericConvetibleElements = (elements: ExcalidrawElement[]) =>
   elements.filter((element) => isConvertibleGenericType(element.type)) as Array<
     | ExcalidrawRectangleElement
     | ExcalidrawDiamondElement
+    | ExcalidrawStarElement
     | ExcalidrawEllipseElement
   >;
 
@@ -832,7 +837,8 @@ const convertElementType = <
         ...element,
         type: targetType,
         roundness:
-          targetType === "diamond" && element.roundness
+          (targetType === "diamond" || targetType === "star") &&
+          element.roundness
             ? {
                 type: isUsingAdaptiveRadius(targetType)
                   ? ROUNDNESS.ADAPTIVE_RADIUS
