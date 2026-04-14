@@ -728,11 +728,17 @@ const renderBindingHighlightForBindableElement_complex = (
           break;
         case "star": {
           const pts = getStarPoints(element);
+          const cx = element.width / 2;
+          const cy = element.height / 2;
           context.beginPath();
           for (let i = 0; i < pts.length; i++) {
             const [lx, ly] = pts[i];
-            const px = lx + offset;
-            const py = ly + offset;
+            const dx = lx - cx;
+            const dy = ly - cy;
+            const dist = Math.hypot(dx, dy);
+            const expand = dist > 0 ? offset / dist : 0;
+            const px = lx + offset + dx * expand;
+            const py = ly + offset + dy * expand;
             if (i === 0) {
               context.moveTo(px, py);
             } else {

@@ -662,6 +662,25 @@ const intersectRectanguloidWithLineSegment = (
   return intersections;
 };
 
+const expandStarVertex = (
+  element: ExcalidrawStarElement,
+  pt: readonly [number, number],
+  cx: number,
+  cy: number,
+  offset: number,
+): GlobalPoint => {
+  const dx = pt[0] - cx;
+  const dy = pt[1] - cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist === 0) {
+    return pointFrom<GlobalPoint>(element.x + pt[0], element.y + pt[1]);
+  }
+  return pointFrom<GlobalPoint>(
+    element.x + pt[0] + (dx / dist) * offset,
+    element.y + pt[1] + (dy / dist) * offset,
+  );
+};
+
 /**
  *
  * @param element
@@ -673,7 +692,7 @@ const intersectStarWithLineSegment = (
   element: ExcalidrawStarElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
-  _offset: number = 0,
+  offset: number = 0,
   onlyFirst = false,
 ): GlobalPoint[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -684,15 +703,17 @@ const intersectStarWithLineSegment = (
 
   const pts = getStarPoints(element);
   const intersections: GlobalPoint[] = [];
+  const cx = element.width / 2;
+  const cy = element.height / 2;
 
   for (let i = 0; i < pts.length; i++) {
-    const p1 = pointFrom<GlobalPoint>(
-      element.x + pts[i][0],
-      element.y + pts[i][1],
-    );
-    const p2 = pointFrom<GlobalPoint>(
-      element.x + pts[(i + 1) % pts.length][0],
-      element.y + pts[(i + 1) % pts.length][1],
+    const p1 = expandStarVertex(element, pts[i], cx, cy, offset);
+    const p2 = expandStarVertex(
+      element,
+      pts[(i + 1) % pts.length],
+      cx,
+      cy,
+      offset,
     );
     lineIntersections(
       [lineSegment(p1, p2)],
