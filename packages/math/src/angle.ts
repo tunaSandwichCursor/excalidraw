@@ -8,6 +8,7 @@ import type {
   Radians,
 } from "./types";
 
+console.log('hiu')
 export const normalizeRadians = (angle: Radians): Radians =>
   angle < 0
     ? (((angle % (2 * Math.PI)) + 2 * Math.PI) as Radians)
