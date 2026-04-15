@@ -1,0 +1,7 @@
+{
+  "install": "yarn install --frozen-lockfile",
+  "start": "yarn start",
+  "ports": [
+    { "port": 3000, "name": "excalidraw-dev" }
+  ]
+}
