@@ -8855,7 +8855,7 @@ class App extends React.Component<AppProps, AppState> {
       sceneX: gridX,
       sceneY: gridY,
       insertAtParentCenter: true,
-      container: noteElement,
+      container: noteElement as ExcalidrawTextContainer,
     });
 
     resetCursor(this.interactiveCanvas);
