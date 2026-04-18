@@ -104,6 +104,7 @@ export const AllowedExcalidrawActiveTools: Record<
   lasso: true,
   text: true,
   rectangle: true,
+  note: true,
   diamond: true,
   ellipse: true,
   line: true,
@@ -524,6 +525,7 @@ export const restoreElement = (
     // generic elements
     case "ellipse":
     case "rectangle":
+    case "note":
     case "diamond":
     case "iframe":
     case "embeddable":
