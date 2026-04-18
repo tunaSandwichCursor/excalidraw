@@ -7858,6 +7858,8 @@ class App extends React.Component<AppProps, AppState> {
       }
     } else if (this.state.activeTool.type === "text") {
       this.handleTextOnPointerDown(event, pointerDownState);
+    } else if (this.state.activeTool.type === "note") {
+      this.handleNoteOnPointerDown(event, pointerDownState);
     } else if (
       this.state.activeTool.type === "arrow" ||
       this.state.activeTool.type === "line"
@@ -8801,6 +8803,71 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  private handleNoteOnPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    if (this.state.editingTextElement) {
+      return;
+    }
+
+    const NOTE_SIZE = 200;
+
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const noteElement = newElement({
+      type: "note",
+      x: gridX - NOTE_SIZE / 2,
+      y: gridY - NOTE_SIZE / 2,
+      width: NOTE_SIZE,
+      height: NOTE_SIZE,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor: this.state.currentItemBackgroundColor,
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: this.state.currentItemRoughness,
+      opacity: this.state.currentItemOpacity,
+      roundness: this.getCurrentItemRoundness("note"),
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(noteElement);
+
+    this.setState({
+      selectedElementIds: { [noteElement.id]: true },
+      newElement: null,
+    });
+
+    this.startTextEditing({
+      sceneX: gridX,
+      sceneY: gridY,
+      insertAtParentCenter: true,
+      container: noteElement,
+    });
+
+    resetCursor(this.interactiveCanvas);
+    if (!this.state.activeTool.locked) {
+      this.setState({
+        activeTool: updateActiveTool(this.state, {
+          type: this.state.preferredSelectionTool.type,
+        }),
+      });
+    }
+  };
+
   private handleFreeDrawElementOnPointerDown = (
     event: React.PointerEvent<HTMLElement>,
     elementType: ExcalidrawFreeDrawElement["type"],
@@ -9298,6 +9365,7 @@ class App extends React.Component<AppProps, AppState> {
     elementType:
       | "selection"
       | "rectangle"
+      | "note"
       | "diamond"
       | "ellipse"
       | "iframe"
