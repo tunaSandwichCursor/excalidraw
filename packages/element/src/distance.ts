@@ -34,6 +34,7 @@ export const distanceToElement = (
   switch (element.type) {
     case "selection":
     case "rectangle":
+    case "note":
     case "image":
     case "text":
     case "iframe":

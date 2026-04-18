@@ -9298,6 +9298,7 @@ class App extends React.Component<AppProps, AppState> {
     elementType:
       | "selection"
       | "rectangle"
+      | "note"
       | "diamond"
       | "ellipse"
       | "iframe"

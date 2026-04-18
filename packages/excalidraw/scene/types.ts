@@ -161,6 +161,7 @@ export type ElementShape =
 
 export type ElementShapes = {
   rectangle: Drawable;
+  note: Drawable;
   ellipse: Drawable;
   diamond: Drawable;
   iframe: Drawable;
