@@ -64,4 +64,15 @@ describe("Test TypeChecks", () => {
       ),
     ).toBeFalsy();
   });
+
+  it("treats note as text-bindable container", () => {
+    expect(
+      hasBoundTextElement(
+        API.createElement({
+          type: "note",
+          boundElements: [{ type: "text", id: "text-id" }],
+        }),
+      ),
+    ).toBeTruthy();
+  });
 });

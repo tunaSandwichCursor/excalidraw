@@ -131,6 +131,7 @@ import {
   newIframeElement,
   newArrowElement,
   newElement,
+  newNoteElement,
   newImageElement,
   newLinearElement,
   newTextElement,
@@ -287,6 +288,7 @@ import type {
   ExcalidrawElbowArrowElement,
   SceneElementsMap,
   ExcalidrawBindableElement,
+  ExcalidrawNoteElement,
 } from "@excalidraw/element/types";
 
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
@@ -606,6 +608,8 @@ const YOUTUBE_VIDEO_STATES = new Map<
 let IS_PLAIN_PASTE = false;
 let IS_PLAIN_PASTE_TIMER = 0;
 let PLAIN_PASTE_TOAST_SHOWN = false;
+const NOTE_INITIAL_WIDTH = 200;
+const NOTE_INITIAL_HEIGHT = 200;
 
 let lastPointerUp: (() => void) | null = null;
 const gesture: Gesture = {
@@ -7858,6 +7862,8 @@ class App extends React.Component<AppProps, AppState> {
       }
     } else if (this.state.activeTool.type === "text") {
       this.handleTextOnPointerDown(event, pointerDownState);
+    } else if (this.state.activeTool.type === "note") {
+      this.createNoteElementOnPointerDown(pointerDownState);
     } else if (
       this.state.activeTool.type === "arrow" ||
       this.state.activeTool.type === "line"
@@ -9371,6 +9377,49 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  private createNoteElementOnPointerDown = (
+    pointerDownState: PointerDownState,
+  ): void => {
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const note: ExcalidrawNoteElement = newNoteElement({
+      type: "note",
+      x: gridX,
+      y: gridY,
+      width: NOTE_INITIAL_WIDTH,
+      height: NOTE_INITIAL_HEIGHT,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor: this.state.currentItemBackgroundColor,
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: this.state.currentItemRoughness,
+      opacity: this.state.currentItemOpacity,
+      roundness: this.getCurrentItemRoundness("note"),
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(note);
+    pointerDownState.drag.blockDragging = true;
+
+    this.setState({
+      multiElement: null,
+      newElement: note,
+    });
+  };
+
   private createFrameElementOnPointerDown = (
     pointerDownState: PointerDownState,
     type: Extract<ToolType, "frame" | "magicframe">,
@@ -10171,6 +10220,10 @@ class App extends React.Component<AppProps, AppState> {
           return;
         }
 
+        if (newElement.type === "note") {
+          return;
+        }
+
         if (newElement.type === "freedraw") {
           const points = newElement.points;
           const dx = pointerCoords.x - newElement.x;
@@ -10769,6 +10822,16 @@ class App extends React.Component<AppProps, AppState> {
 
         this.handleTextWysiwyg(newElement, {
           isExistingElement: true,
+        });
+      }
+
+      if (newElement?.type === "note") {
+        const centerX = newElement.x + newElement.width / 2;
+        const centerY = newElement.y + newElement.height / 2;
+        this.startTextEditing({
+          sceneX: centerX,
+          sceneY: centerY,
+          container: newElement,
         });
       }
 
