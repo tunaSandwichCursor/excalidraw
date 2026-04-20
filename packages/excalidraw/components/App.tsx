@@ -10771,26 +10771,6 @@ class App extends React.Component<AppProps, AppState> {
         });
       }
 
-      if (
-        activeTool.type !== "selection" &&
-        newElement &&
-        isInvisiblySmallElement(newElement)
-      ) {
-        // remove invisible element which was added in onPointerDown
-        // update the store snapshot, so that invisible elements are not captured by the store
-        this.updateScene({
-          elements: this.scene
-            .getElementsIncludingDeleted()
-            .filter((el) => el.id !== newElement.id),
-          appState: {
-            newElement: null,
-          },
-          captureUpdate: CaptureUpdateAction.NEVER,
-        });
-
-        return;
-      }
-
       if (isFrameLikeElement(newElement)) {
         const elementsInsideFrame = getElementsInNewFrame(
           this.scene.getElementsIncludingDeleted(),

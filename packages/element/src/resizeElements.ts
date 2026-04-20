@@ -223,7 +223,6 @@ const rotateSingleElement = (
       angle = (angle + SHIFT_LOCKING_ANGLE / 2) as Radians;
       angle = (angle - (angle % SHIFT_LOCKING_ANGLE)) as Radians;
     }
-    angle = normalizeRadians(angle as Radians);
   }
   const boundTextElementId = getBoundTextElementId(element);
 
@@ -445,7 +444,7 @@ const rotateMultipleElements = (
         : {
             x: element.x + (rotatedCX - cx),
             y: element.y + (rotatedCY - cy),
-            angle: normalizeRadians((centerAngle + origAngle) as Radians),
+            angle: (centerAngle + origAngle) as Radians,
           };
 
       scene.mutateElement(element, updates);
@@ -478,7 +477,7 @@ const rotateMultipleElements = (
         scene.mutateElement(boundText, {
           x,
           y,
-          angle: normalizeRadians((centerAngle + origAngle) as Radians),
+          angle: (centerAngle + origAngle) as Radians,
         });
       }
     }
