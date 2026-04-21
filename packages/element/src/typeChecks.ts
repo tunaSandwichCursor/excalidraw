@@ -288,7 +288,7 @@ export const isFlowchartNodeElement = (
 ): element is ExcalidrawFlowchartNodeElement => {
   return (
     element.type === "rectangle" ||
-    element.type === "note" ||
+    isNoteElement(element) ||
     element.type === "ellipse" ||
     element.type === "diamond"
   );
