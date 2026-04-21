@@ -438,6 +438,7 @@ const VALID_CONTAINER_TYPES = new Set([
   "ellipse",
   "diamond",
   "arrow",
+  "note",
 ]);
 
 export const isValidTextContainer = (element: {
