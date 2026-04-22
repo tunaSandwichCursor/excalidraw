@@ -1,0 +1,13 @@
+{
+  "name": "excalidraw-dev",
+  "version": "0.1.0",
+  "description": "Development tools for the Excalidraw fork — ships changes from Linear automations, enforces coding standards, and provides a devil's advocate agent for design reviews.",
+  "author": {
+    "name": "tunaSandwichCursor"
+  },
+  "repository": "https://github.com/tunaSandwichCursor/excalidraw",
+  "license": "MIT",
+  "keywords": ["excalidraw", "whiteboard", "diagramming", "linear", "automation"],
+  "skills": ".cursor/skills/",
+  "agents": ".cursor/agents/"
+}
