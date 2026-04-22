@@ -7856,6 +7856,8 @@ class App extends React.Component<AppProps, AppState> {
         });
         pointerDownState.hit.wasAddedToSelection = true;
       }
+    } else if (this.state.activeTool.type === "stickyNote") {
+      this.handleStickyNoteOnPointerDown(event, pointerDownState);
     } else if (this.state.activeTool.type === "text") {
       this.handleTextOnPointerDown(event, pointerDownState);
     } else if (
@@ -9301,7 +9303,8 @@ class App extends React.Component<AppProps, AppState> {
       | "diamond"
       | "ellipse"
       | "iframe"
-      | "embeddable",
+      | "embeddable"
+      | "stickyNote",
   ) {
     return this.state.currentItemRoundness === "round"
       ? {
@@ -9329,17 +9332,24 @@ class App extends React.Component<AppProps, AppState> {
       y: gridY,
     });
 
+    const isStickyNote = elementType === "stickyNote";
     const baseElementAttributes = {
       x: gridX,
       y: gridY,
-      strokeColor: this.state.currentItemStrokeColor,
-      backgroundColor: this.state.currentItemBackgroundColor,
-      fillStyle: this.state.currentItemFillStyle,
+      strokeColor: isStickyNote
+        ? "transparent"
+        : this.state.currentItemStrokeColor,
+      backgroundColor: isStickyNote
+        ? "#FDEFA3"
+        : this.state.currentItemBackgroundColor,
+      fillStyle: isStickyNote ? "solid" : this.state.currentItemFillStyle,
       strokeWidth: this.state.currentItemStrokeWidth,
       strokeStyle: this.state.currentItemStrokeStyle,
-      roughness: this.state.currentItemRoughness,
+      roughness: isStickyNote ? 0 : this.state.currentItemRoughness,
       opacity: this.state.currentItemOpacity,
-      roundness: this.getCurrentItemRoundness(elementType),
+      roundness: isStickyNote
+        ? { type: ROUNDNESS.ADAPTIVE_RADIUS }
+        : this.getCurrentItemRoundness(elementType),
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
     } as const;
@@ -9366,6 +9376,68 @@ class App extends React.Component<AppProps, AppState> {
       this.setState({
         multiElement: null,
         newElement: element,
+      });
+    }
+  };
+
+  private handleStickyNoteOnPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    const STICKY_NOTE_SIZE = 200;
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      event[KEYS.CTRL_OR_CMD] ? null : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const element = newElement({
+      type: "stickyNote",
+      x: gridX - STICKY_NOTE_SIZE / 2,
+      y: gridY - STICKY_NOTE_SIZE / 2,
+      width: STICKY_NOTE_SIZE,
+      height: STICKY_NOTE_SIZE,
+      strokeColor: "transparent",
+      backgroundColor: "#FDEFA3",
+      fillStyle: "solid",
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(element);
+
+    this.setState(
+      {
+        multiElement: null,
+        selectedElementIds: { [element.id]: true },
+        newElement: null,
+      },
+      () => {
+        this.startTextEditing({
+          sceneX: gridX,
+          sceneY: gridY,
+          container: element,
+          autoEdit: true,
+        });
+      },
+    );
+
+    resetCursor(this.interactiveCanvas);
+    if (!this.state.activeTool.locked) {
+      this.setState({
+        activeTool: updateActiveTool(this.state, {
+          type: this.state.preferredSelectionTool.type,
+        }),
       });
     }
   };
