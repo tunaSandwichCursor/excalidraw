@@ -9426,7 +9426,8 @@ class App extends React.Component<AppProps, AppState> {
         this.startTextEditing({
           sceneX: gridX,
           sceneY: gridY,
-          container: element,
+          container:
+            element as unknown as ExcalidrawTextContainer,
           autoEdit: true,
         });
       },
