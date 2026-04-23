@@ -30,6 +30,7 @@ import { isLineElement } from "./typeChecks";
 import type {
   ExcalidrawElement,
   ExcalidrawImageElement,
+  ExcalidrawNoteElement,
   ExcalidrawTextElement,
   ExcalidrawLinearElement,
   ExcalidrawGenericElement,
@@ -161,6 +162,14 @@ export const newElement = (
   } & ElementConstructorOpts,
 ): NonDeleted<ExcalidrawGenericElement> =>
   _newElementBase<ExcalidrawGenericElement>(opts.type, opts);
+
+export const newNoteElement = (
+  opts: {
+    type: "note";
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawNoteElement> => {
+  return _newElementBase<ExcalidrawNoteElement>("note", opts);
+};
 
 export const newEmbeddableElement = (
   opts: {

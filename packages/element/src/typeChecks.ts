@@ -9,6 +9,7 @@ import type { MarkNonNullable } from "@excalidraw/common/utility-types";
 import type {
   ExcalidrawElement,
   ExcalidrawTextElement,
+  ExcalidrawNoteElement,
   ExcalidrawEmbeddableElement,
   ExcalidrawLinearElement,
   ExcalidrawBindableElement,
@@ -67,6 +68,12 @@ export const isTextElement = (
   element: ExcalidrawElement | null,
 ): element is ExcalidrawTextElement => {
   return element != null && element.type === "text";
+};
+
+export const isNoteElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawNoteElement => {
+  return element != null && element.type === "note";
 };
 
 export const isFrameElement = (
@@ -182,6 +189,7 @@ export const isBindableElement = (
     element != null &&
     (!element.locked || includeLocked === true) &&
     (element.type === "rectangle" ||
+      element.type === "note" ||
       element.type === "diamond" ||
       element.type === "ellipse" ||
       element.type === "image" ||
@@ -199,6 +207,7 @@ export const isRectanguloidElement = (
   return (
     element != null &&
     (element.type === "rectangle" ||
+      element.type === "note" ||
       element.type === "diamond" ||
       element.type === "image" ||
       element.type === "iframe" ||
@@ -217,6 +226,7 @@ export const isRectangularElement = (
   return (
     element != null &&
     (element.type === "rectangle" ||
+      element.type === "note" ||
       element.type === "image" ||
       element.type === "text" ||
       element.type === "iframe" ||
@@ -235,6 +245,7 @@ export const isTextBindableContainer = (
     element != null &&
     (!element.locked || includeLocked === true) &&
     (element.type === "rectangle" ||
+      element.type === "note" ||
       element.type === "diamond" ||
       element.type === "ellipse" ||
       isArrowElement(element))
@@ -251,6 +262,7 @@ export const isExcalidrawElement = (
   switch (type) {
     case "text":
     case "diamond":
+    case "note":
     case "rectangle":
     case "iframe":
     case "embeddable":
@@ -276,6 +288,7 @@ export const isFlowchartNodeElement = (
 ): element is ExcalidrawFlowchartNodeElement => {
   return (
     element.type === "rectangle" ||
+    element.type === "note" ||
     element.type === "ellipse" ||
     element.type === "diamond"
   );
@@ -307,6 +320,7 @@ export const isArrowBoundToElement = (element: ExcalidrawArrowElement) => {
 
 export const isUsingAdaptiveRadius = (type: string) =>
   type === "rectangle" ||
+  type === "note" ||
   type === "embeddable" ||
   type === "iframe" ||
   type === "image";

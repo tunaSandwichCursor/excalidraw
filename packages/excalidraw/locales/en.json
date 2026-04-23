@@ -313,6 +313,7 @@
     "lasso": "Lasso selection",
     "image": "Insert image",
     "rectangle": "Rectangle",
+    "note": "Note",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
     "arrow": "Arrow",
@@ -335,6 +336,7 @@
   },
   "element": {
     "rectangle": "Rectangle",
+    "note": "Note",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
     "arrow": "Arrow",
@@ -362,6 +364,7 @@
     "arrowBindModifiers": "Hold {{shortcut_1}} to disable binding, or {{shortcut_2}} to bind at a fixed point",
     "freeDraw": "Click and drag, release when you're finished",
     "text": "Tip: you can also add text by double-clicking anywhere with the selection tool",
+    "note": "Click to place a note and start typing",
     "embeddable": "Click-drag to create a website embed",
     "text_selected": "Double-click or press {{shortcut}} to edit text",
     "text_editing": "Press {{shortcut_1}} or {{shortcut_2}} to finish editing",

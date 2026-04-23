@@ -4,8 +4,7 @@ import { resolvablePromise } from "@excalidraw/common";
 
 import { Excalidraw } from "../index";
 
-import { Pointer } from "./helpers/ui";
-import { act, render } from "./test-utils";
+import { act, fireEvent, render } from "./test-utils";
 
 import type { ExcalidrawImperativeAPI } from "../types";
 
@@ -13,8 +12,6 @@ describe("setActiveTool()", () => {
   const h = window.h;
 
   let excalidrawAPI: ExcalidrawImperativeAPI;
-
-  const mouse = new Pointer("mouse");
 
   beforeEach(async () => {
     const excalidrawAPIPromise = resolvablePromise<ExcalidrawImperativeAPI>();
@@ -38,8 +35,10 @@ describe("setActiveTool()", () => {
     });
     expect(h.state.activeTool.type).toBe("rectangle");
 
-    mouse.down(10, 10);
-    mouse.up(20, 20);
+    const canvas = document.querySelector("canvas.interactive")!;
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20 });
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20 });
 
     expect(h.state.activeTool.type).toBe("selection");
   });
@@ -51,10 +50,29 @@ describe("setActiveTool()", () => {
     });
     expect(h.state.activeTool.type).toBe("rectangle");
 
-    mouse.down(10, 10);
-    mouse.up(20, 20);
+    const canvas = document.querySelector("canvas.interactive")!;
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20 });
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20 });
 
     expect(h.state.activeTool.type).toBe("rectangle");
+  });
+
+  it("should set the note tool type", async () => {
+    expect(h.state.activeTool.type).toBe("selection");
+    act(() => {
+      excalidrawAPI.setActiveTool({ type: "note" });
+    });
+    expect(h.state.activeTool.type).toBe("note");
+  });
+
+  it("should support note tool locking", async () => {
+    expect(h.state.activeTool.type).toBe("selection");
+    act(() => {
+      excalidrawAPI.setActiveTool({ type: "note", locked: true });
+    });
+    expect(h.state.activeTool.type).toBe("note");
+    expect(h.state.activeTool.locked).toBe(true);
   });
 
   it("should set custom tool", async () => {

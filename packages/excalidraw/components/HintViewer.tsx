@@ -99,6 +99,10 @@ const getHints = ({
     return t("hints.text");
   }
 
+  if (activeTool.type === "note") {
+    return t("hints.note");
+  }
+
   if (activeTool.type === "embeddable") {
     return t("hints.embeddable");
   }

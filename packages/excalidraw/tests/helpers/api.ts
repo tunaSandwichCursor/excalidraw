@@ -17,6 +17,7 @@ import {
   newLinearElement,
   newMagicFrameElement,
   newTextElement,
+  newNoteElement,
 } from "@excalidraw/element";
 
 import { isLinearElementType } from "@excalidraw/element";
@@ -279,12 +280,19 @@ export class API {
     };
     switch (type) {
       case "rectangle":
+      case "note":
       case "diamond":
       case "ellipse":
-        element = newElement({
-          type: type as "rectangle" | "diamond" | "ellipse",
-          ...base,
-        });
+        element =
+          type === "note"
+            ? newNoteElement({
+                type: "note",
+                ...base,
+              })
+            : newElement({
+                type: type as "rectangle" | "diamond" | "ellipse",
+                ...base,
+              });
         break;
       case "embeddable":
         element = newEmbeddableElement({
