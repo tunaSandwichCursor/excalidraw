@@ -161,6 +161,18 @@
     }
   }
 
+  .App-menu_top__left__actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .theme-toggle-island {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .theme--dark {
     .plus-banner {
       &:hover {

@@ -4,6 +4,7 @@ import React from "react";
 import {
   CLASSES,
   DEFAULT_SIDEBAR,
+  THEME,
   TOOL_TYPE,
   arrayToMap,
   capitalizeString,
@@ -19,6 +20,7 @@ import { ShapeCache } from "@excalidraw/element";
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
 import { actionToggleStats } from "../actions";
+import { actionToggleTheme } from "../actions/actionCanvas";
 import { trackEvent } from "../analytics";
 import { TunnelsContext, useInitializeTunnels } from "../context/tunnels";
 import { UIAppStateContext } from "../context/ui-appState";
@@ -38,6 +40,7 @@ import { MobileMenu } from "./MobileMenu";
 import { PasteChartDialog } from "./PasteChartDialog";
 import { Section } from "./Section";
 import Stack from "./Stack";
+import { ToolButton } from "./ToolButton";
 import { UserList } from "./UserList";
 import { PenModeButton } from "./PenModeButton";
 import Footer from "./footer/Footer";
@@ -46,7 +49,7 @@ import MainMenu from "./main-menu/MainMenu";
 import { ActiveConfirmDialog } from "./ActiveConfirmDialog";
 import { useEditorInterface, useStylesPanelMode } from "./App";
 import { OverwriteConfirmDialog } from "./OverwriteConfirm/OverwriteConfirm";
-import { sidebarRightIcon } from "./icons";
+import { MoonIcon, SunIcon, sidebarRightIcon } from "./icons";
 import { DefaultSidebar } from "./DefaultSidebar";
 import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
@@ -227,9 +230,33 @@ const LayerUI = ({
 
   const renderCanvasActions = () => (
     <div style={{ position: "relative" }}>
-      {/* wrapping to Fragment stops React from occasionally complaining
-                about identical Keys */}
-      <tunnels.MainMenuTunnel.Out />
+      <div className="App-menu_top__left__actions">
+        {/* wrapping to Fragment stops React from occasionally complaining
+                  about identical Keys */}
+        <tunnels.MainMenuTunnel.Out />
+        {UIOptions.canvasActions.toggleTheme && (
+          <Island padding={1} className="theme-toggle-island">
+            <ToolButton
+              type="icon"
+              icon={appState.theme === THEME.LIGHT ? MoonIcon : SunIcon}
+              title={
+                appState.theme === THEME.DARK
+                  ? t("buttons.lightMode")
+                  : t("buttons.darkMode")
+              }
+              aria-label={
+                appState.theme === THEME.DARK
+                  ? t("buttons.lightMode")
+                  : t("buttons.darkMode")
+              }
+              onClick={() => {
+                actionManager.executeAction(actionToggleTheme);
+              }}
+              data-testid="toggle-dark-mode"
+            />
+          </Island>
+        )}
+      </div>
       {renderWelcomeScreen && <tunnels.WelcomeScreenMenuHintTunnel.Out />}
     </div>
   );
