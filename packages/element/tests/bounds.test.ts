@@ -4,7 +4,11 @@ import { arrayToMap, ROUNDNESS } from "@excalidraw/common";
 
 import type { LocalPoint } from "@excalidraw/math";
 
-import { getElementAbsoluteCoords, getElementBounds } from "../src/bounds";
+import {
+  getElementAbsoluteCoords,
+  getElementBounds,
+  getStarVerticesLocal,
+} from "../src/bounds";
 
 import type { ExcalidrawElement, ExcalidrawLinearElement } from "../src/types";
 
@@ -98,6 +102,25 @@ describe("getElementBounds", () => {
     expect(y1).toEqual(27.928932188134524);
     expect(x2).toEqual(57.071067811865476);
     expect(y2).toEqual(42.071067811865476);
+  });
+
+  it("star bounds match vertex hull", () => {
+    const element = _ce({
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 60,
+      a: 0,
+      t: "star",
+    });
+    const [x1, y1, x2, y2] = getElementBounds(element, arrayToMap([element]));
+    const verts = getStarVerticesLocal(100, 60);
+    const xs = verts.map((v) => v[0]);
+    const ys = verts.map((v) => v[1]);
+    expect(x1).toBeCloseTo(Math.min(...xs), 8);
+    expect(y1).toBeCloseTo(Math.min(...ys), 8);
+    expect(x2).toBeCloseTo(Math.max(...xs), 8);
+    expect(y2).toBeCloseTo(Math.max(...ys), 8);
   });
 
   it("ellipse", () => {

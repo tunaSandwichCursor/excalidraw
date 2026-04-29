@@ -1,5 +1,5 @@
 import { arrayToMap, type Bounds } from "@excalidraw/common";
-import { getElementBounds } from "@excalidraw/element";
+import { getElementBounds, getStarVerticesLocal } from "@excalidraw/element";
 import {
   isArrowElement,
   isExcalidrawElement,
@@ -45,6 +45,21 @@ const getNonLinearElementRelativePoints = (
       pointFrom(element.width, element.height / 2),
       pointFrom(element.width / 2, element.height),
       pointFrom(0, element.height / 2),
+    ];
+  }
+  if (element.type === "star") {
+    const verts = getStarVerticesLocal(element.width, element.height);
+    const xs = verts.map((v) => v[0]);
+    const ys = verts.map((v) => v[1]);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return [
+      pointFrom(minX, minY),
+      pointFrom(maxX, minY),
+      pointFrom(maxX, maxY),
+      pointFrom(minX, maxY),
     ];
   }
   return [

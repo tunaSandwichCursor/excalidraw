@@ -55,7 +55,11 @@ import {
   isTextElement,
 } from "./typeChecks";
 
-import { aabbForElement, elementCenterPoint } from "./bounds";
+import {
+  aabbForElement,
+  elementCenterPoint,
+  getStarVerticesLocal,
+} from "./bounds";
 import { updateElbowArrowPoints } from "./elbowArrow";
 import {
   deconstructDiamondElement,
@@ -2522,6 +2526,9 @@ const getShapeType = (element: ExcalidrawBindableElement): ShapeType => {
   if (element.type === "ellipse" || element.type === "diamond") {
     return element.type;
   }
+  if (element.type === "star") {
+    return "diamond";
+  }
   return "rectangle";
 };
 
@@ -2828,6 +2835,52 @@ export const getBindingSideMidPoint = (
     }
 
     return pointRotateRads(pointFrom(x, y), center, bindableElement.angle);
+  }
+
+  if (bindableElement.type === "star") {
+    const verts = getStarVerticesLocal(
+      bindableElement.width,
+      bindableElement.height,
+    );
+    const cx = bindableElement.x + bindableElement.width / 2;
+    const cy = bindableElement.y + bindableElement.height / 2;
+    const localTargetX =
+      cx +
+      (normalizeFixedPoint(binding.fixedPoint)[0] - 0.5) *
+        bindableElement.width;
+    const localTargetY =
+      cy +
+      (normalizeFixedPoint(binding.fixedPoint)[1] - 0.5) *
+        bindableElement.height;
+    const target = pointFrom(localTargetX, localTargetY);
+
+    let best: GlobalPoint | null = null;
+    let bestDist = Infinity;
+    for (let i = 0; i < verts.length; i++) {
+      const a = verts[i];
+      const b = verts[(i + 1) % verts.length];
+      const ax = bindableElement.x + a[0];
+      const ay = bindableElement.y + a[1];
+      const bx = bindableElement.x + b[0];
+      const by = bindableElement.y + b[1];
+      const abx = bx - ax;
+      const aby = by - ay;
+      const apx = target[0] - ax;
+      const apy = target[1] - ay;
+      const ab2 = abx * abx + aby * aby;
+      const t =
+        ab2 === 0 ? 0 : Math.max(0, Math.min(1, (apx * abx + apy * aby) / ab2));
+      const px = ax + t * abx;
+      const py = ay + t * aby;
+      const d = (target[0] - px) ** 2 + (target[1] - py) ** 2;
+      if (d < bestDist) {
+        bestDist = d;
+        best = pointFrom<GlobalPoint>(px, py);
+      }
+    }
+    return best
+      ? pointRotateRads(best, center, bindableElement.angle)
+      : null;
   }
 
   if (isRectangularElement(bindableElement)) {

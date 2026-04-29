@@ -25,6 +25,7 @@ import {
   deconstructRectanguloidElement,
   elementCenterPoint,
   getDiamondBaseCorners,
+  getStarVerticesLocal,
   FOCUS_POINT_SIZE,
   getOmitSidesForEditorInterface,
   getTransformHandles,
@@ -53,7 +54,10 @@ import {
   selectGroupsFromGivenElements,
 } from "@excalidraw/element";
 
-import { getCommonBounds, getElementAbsoluteCoords } from "@excalidraw/element";
+import {
+  getCommonBounds,
+  getElementAbsoluteCoords,
+} from "@excalidraw/element";
 import {
   getGlobalFixedPointForBindableElement,
   isFocusPointVisible,
@@ -365,6 +369,21 @@ const renderBindingHighlightForBindableElement_simple = (
           }
 
           break;
+        case "star": {
+          const el = suggestedBinding.element;
+          const verts = getStarVerticesLocal(el.width, el.height);
+          context.beginPath();
+          verts.forEach((v, i) => {
+            if (i === 0) {
+              context.moveTo(v[0], v[1]);
+            } else {
+              context.lineTo(v[0], v[1]);
+            }
+          });
+          context.closePath();
+          context.stroke();
+          break;
+        }
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -461,6 +480,21 @@ const renderBindingHighlightForBindableElement_simple = (
             return pointFrom<GlobalPoint>(rotatedPoint[0], rotatedPoint[1]);
           },
         );
+      } else if (suggestedBinding.element.type === "star") {
+        const el = suggestedBinding.element;
+        const verts = getStarVerticesLocal(el.width, el.height);
+        midpoints = verts.map((v, i) => {
+          const w = verts[(i + 1) % verts.length];
+          const mx = (v[0] + w[0]) / 2 + el.x;
+          const my = (v[1] + w[1]) / 2 + el.y;
+          const globalPoint = pointFrom<GlobalPoint>(mx, my);
+          const rotatedPoint = pointRotateRads(
+            globalPoint,
+            center,
+            el.angle,
+          );
+          return pointFrom<GlobalPoint>(rotatedPoint[0], rotatedPoint[1]);
+        });
       } else {
         const basePoints = [
           {
@@ -707,6 +741,25 @@ const renderBindingHighlightForBindableElement_complex = (
           }
 
           break;
+        case "star": {
+          const verts = getStarVerticesLocal(
+            element.width + offset * 2,
+            element.height + offset * 2,
+          );
+          context.beginPath();
+          verts.forEach((v, i) => {
+            const px = v[0] - offset;
+            const py = v[1] - offset;
+            if (i === 0) {
+              context.moveTo(px, py);
+            } else {
+              context.lineTo(px, py);
+            }
+          });
+          context.closePath();
+          context.stroke();
+          break;
+        }
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -827,6 +880,27 @@ const renderBindingHighlightForBindableElement_complex = (
         midpoints = curves.map((curve) => {
           const point = bezierEquation(curve, 0.5);
           const rotatedPoint = pointRotateRads(point, center, element.angle);
+          return {
+            x: rotatedPoint[0] - element.x,
+            y: rotatedPoint[1] - element.y,
+          };
+        });
+      } else if (element.type === "star") {
+        const center = elementCenterPoint(element, allElementsMap);
+        const verts = getStarVerticesLocal(element.width, element.height);
+        midpoints = verts.map((v, i) => {
+          const w = verts[(i + 1) % verts.length];
+          const mx = (v[0] + w[0]) / 2;
+          const my = (v[1] + w[1]) / 2;
+          const globalPoint = pointFrom<GlobalPoint>(
+            mx + element.x,
+            my + element.y,
+          );
+          const rotatedPoint = pointRotateRads(
+            globalPoint,
+            center,
+            element.angle,
+          );
           return {
             x: rotatedPoint[0] - element.x,
             y: rotatedPoint[1] - element.y,

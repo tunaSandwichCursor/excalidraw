@@ -34,7 +34,10 @@ import {
   type LocalPoint,
 } from "@excalidraw/math";
 
-import { getElementAbsoluteCoords } from "@excalidraw/element";
+import {
+  getElementAbsoluteCoords,
+  getStarVerticesLocal,
+} from "@excalidraw/element";
 
 import type {
   ElementsMap,
@@ -42,6 +45,7 @@ import type {
   ExcalidrawDiamondElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
+  ExcalidrawStarElement,
   ExcalidrawEmbeddableElement,
   ExcalidrawFrameLikeElement,
   ExcalidrawFreeDrawElement,
@@ -105,6 +109,7 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> =
 type RectangularElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
@@ -132,6 +137,17 @@ export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
       pointRotateRads(pointFrom(cx, y + height), center, angle),
       pointRotateRads(pointFrom(x, cy), center, angle),
     );
+  } else if (element.type === "star") {
+    const star = element as ExcalidrawStarElement;
+    const verts = getStarVerticesLocal(star.width, star.height);
+    const rotated: Point[] = verts.map(([vx, vy]) =>
+      pointRotateRads(
+        pointFrom(x + vx, y + vy),
+        center,
+        angle,
+      ),
+    );
+    data = polygonFromPoints(rotated);
   } else {
     data = polygon(
       pointRotateRads(pointFrom(x, y), center, angle),

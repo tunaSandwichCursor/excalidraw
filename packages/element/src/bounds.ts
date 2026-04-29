@@ -65,6 +65,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
   ExcalidrawTextElementWithContainer,
   NonDeleted,
 } from "./types";
@@ -202,6 +203,21 @@ export class ElementBounds {
       const minY = Math.min(y11, y12, y22, y21);
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
+      bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      const star = element as ExcalidrawStarElement;
+      const verts = getStarVerticesLocal(star.width, star.height);
+      const rotated = verts.map(([vx, vy]) =>
+        pointRotateRads(
+          pointFrom(star.x + vx, star.y + vy),
+          pointFrom(cx, cy),
+          star.angle,
+        ),
+      );
+      const minX = Math.min(...rotated.map((p) => p[0]));
+      const minY = Math.min(...rotated.map((p) => p[1]));
+      const maxX = Math.max(...rotated.map((p) => p[0]));
+      const maxY = Math.max(...rotated.map((p) => p[1]));
       bounds = [minX, minY, maxX, maxY];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
@@ -369,6 +385,25 @@ export const getElementLineSegments = (
     const rotatedSides = getRotatedSides(sides, center, element.angle);
 
     return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "star") {
+    const verts = getStarVerticesLocal(element.width, element.height);
+    const segments: LineSegment<GlobalPoint>[] = [];
+    for (let i = 0; i < verts.length; i++) {
+      const a = verts[i];
+      const b = verts[(i + 1) % verts.length];
+      const p1 = pointRotateRads(
+        pointFrom<GlobalPoint>(element.x + a[0], element.y + a[1]),
+        center,
+        element.angle,
+      );
+      const p2 = pointRotateRads(
+        pointFrom<GlobalPoint>(element.x + b[0], element.y + b[1]),
+        center,
+        element.angle,
+      );
+      segments.push(lineSegment(p1, p2));
+    }
+    return segments;
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
@@ -535,6 +570,26 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+/** Local-space vertices of a 5-pointed star inside a width×height box (top tip at top center). */
+export const getStarVerticesLocal = (
+  width: number,
+  height: number,
+): LocalPoint[] => {
+  const cx = width / 2;
+  const cy = height / 2;
+  const outerR = Math.min(width, height) / 2;
+  const innerR = outerR * Math.sin(Math.PI / 10) / Math.cos(Math.PI / 5);
+  const points: LocalPoint[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outerR : innerR;
+    const a = (-Math.PI / 2 + (i * Math.PI) / 5) as Radians;
+    points.push(
+      pointFrom(cx + r * Math.cos(a), cy + r * Math.sin(a)) as LocalPoint,
+    );
+  }
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes
