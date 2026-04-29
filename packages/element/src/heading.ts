@@ -237,7 +237,7 @@ export const headingForPointFromElement = <Point extends GlobalPoint>(
 
   const midPoint = getCenterForBounds(aabb);
 
-  if (element.type === "diamond") {
+  if (element.type === "diamond" || element.type === "star") {
     return headingForPointFromDiamondElement(element, aabb, p);
   }
 

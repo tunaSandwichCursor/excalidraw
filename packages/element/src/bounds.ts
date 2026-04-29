@@ -203,6 +203,23 @@ export class ElementBounds {
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
       bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      const starPoints = getStarPoints(element);
+      const rotatedPoints = starPoints.map(([px, py]) =>
+        pointRotateRads(
+          pointFrom(element.x + px, element.y + py),
+          pointFrom(cx, cy),
+          element.angle,
+        ),
+      );
+      const xs = rotatedPoints.map(([rpx]) => rpx);
+      const ys = rotatedPoints.map(([, rpy]) => rpy);
+      bounds = [
+        Math.min(...xs),
+        Math.min(...ys),
+        Math.max(...xs),
+        Math.max(...ys),
+      ];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
       const h = (y2 - y1) / 2;
@@ -369,6 +386,22 @@ export const getElementLineSegments = (
     const rotatedSides = getRotatedSides(sides, center, element.angle);
 
     return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "star") {
+    const starPoints = getStarPoints(element);
+    const globalPoints: GlobalPoint[] = starPoints.map(([px, py]) =>
+      pointRotateRads(
+        pointFrom<GlobalPoint>(element.x + px, element.y + py),
+        center,
+        element.angle,
+      ),
+    );
+    const segments: LineSegment<GlobalPoint>[] = [];
+    for (let i = 0; i < globalPoints.length; i++) {
+      segments.push(
+        lineSegment(globalPoints[i], globalPoints[(i + 1) % globalPoints.length]),
+      );
+    }
+    return segments;
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
@@ -535,6 +568,30 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+export const getStarPoints = (
+  element: ExcalidrawElement,
+): [number, number][] => {
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const outerRx = element.width / 2;
+  const outerRy = element.height / 2;
+  const innerRx = outerRx * 0.382;
+  const innerRy = outerRy * 0.382;
+  const numPoints = 5;
+  const points: [number, number][] = [];
+  const startAngle = -Math.PI / 2;
+
+  for (let i = 0; i < numPoints * 2; i++) {
+    const angle = startAngle + (i * Math.PI) / numPoints;
+    const isOuter = i % 2 === 0;
+    const rx = isOuter ? outerRx : innerRx;
+    const ry = isOuter ? outerRy : innerRy;
+    points.push([cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)]);
+  }
+
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes

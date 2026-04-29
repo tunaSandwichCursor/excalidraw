@@ -25,6 +25,7 @@ import {
   deconstructRectanguloidElement,
   elementCenterPoint,
   getDiamondBaseCorners,
+  getStarPoints,
   FOCUS_POINT_SIZE,
   getOmitSidesForEditorInterface,
   getTransformHandles,
@@ -365,10 +366,25 @@ const renderBindingHighlightForBindableElement_simple = (
           }
 
           break;
+        case "star":
+          {
+            const starPts = getStarPoints(suggestedBinding.element);
+            context.beginPath();
+            starPts.forEach(([px, py], i) => {
+              if (i === 0) {
+                context.moveTo(px, py);
+              } else {
+                context.lineTo(px, py);
+              }
+            });
+            context.closePath();
+            context.stroke();
+          }
+          break;
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
-              suggestedBinding.element,
+              suggestedBinding.element as any,
             );
 
             // Draw each line segment individually
@@ -707,10 +723,25 @@ const renderBindingHighlightForBindableElement_complex = (
           }
 
           break;
+        case "star":
+          {
+            const starPts = getStarPoints(element);
+            context.beginPath();
+            starPts.forEach(([px, py], i) => {
+              if (i === 0) {
+                context.moveTo(px + offset, py + offset);
+              } else {
+                context.lineTo(px + offset, py + offset);
+              }
+            });
+            context.closePath();
+            context.stroke();
+          }
+          break;
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
-              element,
+              element as any,
               offset,
             );
 

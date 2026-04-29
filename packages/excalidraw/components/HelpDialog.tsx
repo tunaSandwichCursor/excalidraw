@@ -157,6 +157,10 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               shortcuts={[KEYS.D, KEYS["3"]]}
             />
             <Shortcut
+              label={t("toolBar.star")}
+              shortcuts={[KEYS.S]}
+            />
+            <Shortcut
               label={t("toolBar.ellipse")}
               shortcuts={[KEYS.O, KEYS["4"]]}
             />

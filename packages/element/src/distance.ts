@@ -1,6 +1,8 @@
 import {
   curvePointDistance,
   distanceToLineSegment,
+  lineSegment,
+  pointFrom,
   pointRotateRads,
 } from "@excalidraw/math";
 
@@ -14,7 +16,7 @@ import {
   deconstructRectanguloidElement,
 } from "./utils";
 
-import { elementCenterPoint } from "./bounds";
+import { elementCenterPoint, getStarPoints } from "./bounds";
 
 import type {
   ElementsMap,
@@ -43,6 +45,8 @@ export const distanceToElement = (
       return distanceToRectanguloidElement(element, elementsMap, p);
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
+    case "star":
+      return distanceToStarElement(element, elementsMap, p);
     case "ellipse":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
@@ -110,14 +114,26 @@ const distanceToDiamondElement = (
   );
 };
 
-/**
- * Returns the distance of a point and the provided ellipse element, accounting
- * for roundness and rotation
- *
- * @param element The ellipse element
- * @param p The point to consider
- * @returns The eucledian distance to the outline of the ellipse
- */
+const distanceToStarElement = (
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+  p: GlobalPoint,
+): number => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedPoint = pointRotateRads(p, center, -element.angle as Radians);
+
+  const starPts = getStarPoints(element).map(
+    ([px, py]) =>
+      pointFrom<GlobalPoint>(element.x + px, element.y + py),
+  );
+
+  const sides = starPts.map((pt, i) =>
+    lineSegment<GlobalPoint>(pt, starPts[(i + 1) % starPts.length]),
+  );
+
+  return Math.min(...sides.map((s) => distanceToLineSegment(rotatedPoint, s)));
+};
+
 const distanceToEllipseElement = (
   element: ExcalidrawEllipseElement,
   elementsMap: ElementsMap,

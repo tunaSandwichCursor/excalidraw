@@ -47,6 +47,19 @@ const getNonLinearElementRelativePoints = (
       pointFrom(0, element.height / 2),
     ];
   }
+  if (element.type === "star") {
+    const cx = element.width / 2;
+    const cy = element.height / 2;
+    const outerRx = element.width / 2;
+    const outerRy = element.height / 2;
+    const startAngle = -Math.PI / 2;
+    return [
+      pointFrom(cx + outerRx * Math.cos(startAngle), cy + outerRy * Math.sin(startAngle)),
+      pointFrom(cx + outerRx * Math.cos(startAngle + (2 * Math.PI * 2) / 5), cy + outerRy * Math.sin(startAngle + (2 * Math.PI * 2) / 5)),
+      pointFrom(cx + outerRx * Math.cos(startAngle + (2 * Math.PI * 4) / 5), cy + outerRy * Math.sin(startAngle + (2 * Math.PI * 4) / 5)),
+      pointFrom(cx + outerRx * Math.cos(startAngle + (2 * Math.PI * 1) / 5), cy + outerRy * Math.sin(startAngle + (2 * Math.PI * 1) / 5)),
+    ];
+  }
   return [
     pointFrom(0, 0),
     pointFrom(0 + element.width, 0),

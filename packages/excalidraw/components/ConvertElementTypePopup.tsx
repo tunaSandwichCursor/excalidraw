@@ -63,6 +63,7 @@ import type {
   ConvertibleLinearTypes,
   ConvertibleTypes,
   ExcalidrawDiamondElement,
+  ExcalidrawStarElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
   ExcalidrawLinearElement,
@@ -82,6 +83,7 @@ import "./ConvertElementTypePopup.scss";
 import { ToolButton } from "./ToolButton";
 import {
   DiamondIcon,
+  StarIcon,
   elbowArrowIcon,
   EllipseIcon,
   LineIcon,
@@ -100,11 +102,12 @@ const GAP_VERTICAL = 10;
 type ExcalidrawConvertibleElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawEllipseElement
   | ExcalidrawLinearElement;
 
 // indicates order of switching
-const GENERIC_TYPES = ["rectangle", "diamond", "ellipse"] as const;
+const GENERIC_TYPES = ["rectangle", "diamond", "star", "ellipse"] as const;
 // indicates order of switching
 const LINEAR_TYPES = [
   "line",
@@ -302,6 +305,7 @@ const Panel = ({
       ? [
           ["rectangle", RectangleIcon],
           ["diamond", DiamondIcon],
+          ["star", StarIcon],
           ["ellipse", EllipseIcon],
         ]
       : [];
@@ -832,7 +836,7 @@ const convertElementType = <
         ...element,
         type: targetType,
         roundness:
-          targetType === "diamond" && element.roundness
+          (targetType === "diamond" || targetType === "star") && element.roundness
             ? {
                 type: isUsingAdaptiveRadius(targetType)
                   ? ROUNDNESS.ADAPTIVE_RADIUS

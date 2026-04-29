@@ -34,6 +34,7 @@ import {
   getCenterForBounds,
   getCubicBezierCurveBound,
   getDiamondPoints,
+  getStarPoints,
   getElementBounds,
   pointInsideBounds,
 } from "./bounds";
@@ -466,6 +467,14 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectStarWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -702,13 +711,45 @@ const intersectDiamondWithLineSegment = (
   return intersections;
 };
 
-/**
- *
- * @param element
- * @param a
- * @param b
- * @returns
- */
+const intersectStarWithLineSegment = (
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  offset: number = 0,
+  onlyFirst = false,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+
+  const starPts = getStarPoints(element).map(
+    ([px, py]) =>
+      pointFrom<GlobalPoint>(element.x + px + offset * Math.sign(px - element.width / 2), element.y + py + offset * Math.sign(py - element.height / 2)),
+  );
+
+  const intersections: GlobalPoint[] = [];
+  for (let i = 0; i < starPts.length; i++) {
+    const side = lineSegment<GlobalPoint>(
+      starPts[i],
+      starPts[(i + 1) % starPts.length],
+    );
+    const pts = lineSegmentIntersectionPoints(
+      lineSegment(rotatedA, rotatedB),
+      side,
+    );
+    if (pts) {
+      intersections.push(
+        pointRotateRads(pts, center, element.angle),
+      );
+      if (onlyFirst) {
+        return intersections;
+      }
+    }
+  }
+
+  return intersections;
+};
+
 const intersectEllipseWithLineSegment = (
   element: ExcalidrawEllipseElement,
   elementsMap: ElementsMap,
@@ -808,6 +849,16 @@ export const isBindableElementInsideOtherBindable = (
         pointFrom(x + bottomX, y + bottomY + offset), // bottom
         pointFrom(x + leftX - offset, y + leftY), // left
       ];
+      return corners.map((corner) => pointRotateRads(corner, center, angle));
+    }
+    if (element.type === "star") {
+      const starPts = getStarPoints(element);
+      const corners: GlobalPoint[] = starPts.map(([px, py]) =>
+        pointFrom(
+          x + px + offset * Math.sign(px - width / 2),
+          y + py + offset * Math.sign(py - height / 2),
+        ),
+      );
       return corners.map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "ellipse") {

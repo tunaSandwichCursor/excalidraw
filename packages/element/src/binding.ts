@@ -2519,8 +2519,11 @@ type Side =
   | "top-left";
 type ShapeType = "rectangle" | "ellipse" | "diamond";
 const getShapeType = (element: ExcalidrawBindableElement): ShapeType => {
-  if (element.type === "ellipse" || element.type === "diamond") {
+  if (element.type === "ellipse") {
     return element.type;
+  }
+  if (element.type === "diamond" || element.type === "star") {
+    return "diamond";
   }
   return "rectangle";
 };
