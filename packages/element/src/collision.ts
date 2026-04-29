@@ -1,6 +1,7 @@
 import { invariant, isTransparent, type Bounds } from "@excalidraw/common";
 import {
   curveIntersectLineSegment,
+  getStarVerticesLocal,
   isPointWithinBounds,
   lineSegment,
   lineSegmentIntersectionPoints,
@@ -66,6 +67,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawBindableElement,
   ExcalidrawDiamondElement,
+  ExcalidrawStarElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
@@ -466,6 +468,14 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectStarWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -659,6 +669,39 @@ const intersectRectanguloidWithLineSegment = (
  * @param b
  * @returns
  */
+const intersectStarWithLineSegment = (
+  element: ExcalidrawStarElement,
+  _elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  _offset: number = 0,
+  onlyFirst = false,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, _elementsMap);
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+  const rotatedIntersector = lineSegment(rotatedA, rotatedB);
+
+  const verts = getStarVerticesLocal(element.width, element.height).map((lp) =>
+    pointFrom<GlobalPoint>(element.x + lp[0], element.y + lp[1]),
+  );
+  const intersections: GlobalPoint[] = [];
+  for (let i = 0; i < verts.length; i++) {
+    const side = lineSegment(verts[i], verts[(i + 1) % verts.length]);
+    lineIntersections(
+      [side],
+      rotatedIntersector,
+      intersections,
+      center,
+      element.angle,
+      onlyFirst,
+    );
+    if (onlyFirst && intersections.length > 0) {
+      return intersections;
+    }
+  }
+  return intersections;
+};
+
 const intersectDiamondWithLineSegment = (
   element: ExcalidrawDiamondElement,
   elementsMap: ElementsMap,

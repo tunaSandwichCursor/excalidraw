@@ -17,6 +17,8 @@ import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
 import { unbindBindingElement, updateBoundElements } from "./binding";
 import { getCommonBounds } from "./bounds";
+import { getStarVerticesLocal } from "@excalidraw/math";
+
 import { getPerfectElementSize } from "./sizeHelpers";
 import { getBoundTextElement } from "./textElement";
 import { getMinTextElementWidth } from "./textMeasurements";
@@ -326,6 +328,31 @@ export const dragNewElement = ({
     if (shouldResizeFromCenter) {
       newX = originX - width / 2;
     }
+  }
+
+  if (
+    newElement.type === "star" &&
+    width !== 0 &&
+    height !== 0 &&
+    !shouldResizeFromCenter
+  ) {
+    const cx = originX;
+    const cy = originY;
+    const verts = getStarVerticesLocal(width, height);
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const p of verts) {
+      minX = Math.min(minX, cx + p[0]);
+      minY = Math.min(minY, cy + p[1]);
+      maxX = Math.max(maxX, cx + p[0]);
+      maxY = Math.max(maxY, cy + p[1]);
+    }
+    newX = minX;
+    newY = minY;
+    width = maxX - minX;
+    height = maxY - minY;
   }
 
   if (width !== 0 && height !== 0) {

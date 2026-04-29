@@ -10,6 +10,7 @@ import {
 
 import {
   degreesToRadians,
+  getStarVerticesLocal,
   lineSegment,
   pointDistance,
   pointFrom,
@@ -203,6 +204,23 @@ export class ElementBounds {
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
       bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      const locals = getStarVerticesLocal(element.width, element.height);
+      const rotated = locals.map((p) =>
+        pointRotateRads(
+          pointFrom(element.x + p[0], element.y + p[1]),
+          pointFrom(cx, cy),
+          element.angle,
+        ),
+      );
+      const xs = rotated.map((p) => p[0]);
+      const ys = rotated.map((p) => p[1]);
+      bounds = [
+        Math.min(...xs),
+        Math.min(...ys),
+        Math.max(...xs),
+        Math.max(...ys),
+      ];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
       const h = (y2 - y1) / 2;
@@ -369,6 +387,22 @@ export const getElementLineSegments = (
     const rotatedSides = getRotatedSides(sides, center, element.angle);
 
     return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "star") {
+    const locals = getStarVerticesLocal(element.width, element.height);
+    const globalVerts = locals.map((p) =>
+      pointRotateRads(
+        pointFrom<GlobalPoint>(element.x + p[0], element.y + p[1]),
+        center,
+        element.angle,
+      ),
+    );
+    const segments: LineSegment<GlobalPoint>[] = [];
+    for (let i = 0; i < globalVerts.length; i++) {
+      const a = globalVerts[i];
+      const b = globalVerts[(i + 1) % globalVerts.length];
+      segments.push(lineSegment(a, b));
+    }
+    return segments;
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
