@@ -183,6 +183,7 @@ export const isBindableElement = (
     (!element.locked || includeLocked === true) &&
     (element.type === "rectangle" ||
       element.type === "diamond" ||
+      element.type === "star" ||
       element.type === "ellipse" ||
       element.type === "image" ||
       element.type === "iframe" ||
@@ -200,6 +201,7 @@ export const isRectanguloidElement = (
     element != null &&
     (element.type === "rectangle" ||
       element.type === "diamond" ||
+      element.type === "star" ||
       element.type === "image" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
@@ -251,6 +253,7 @@ export const isExcalidrawElement = (
   switch (type) {
     case "text":
     case "diamond":
+    case "star":
     case "rectangle":
     case "iframe":
     case "embeddable":
@@ -312,7 +315,7 @@ export const isUsingAdaptiveRadius = (type: string) =>
   type === "image";
 
 export const isUsingProportionalRadius = (type: string) =>
-  type === "line" || type === "arrow" || type === "diamond";
+  type === "line" || type === "arrow" || type === "diamond" || type === "star";
 
 export const canApplyRoundnessTypeToElement = (
   roundnessType: RoundnessType,

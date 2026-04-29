@@ -1,7 +1,10 @@
 import {
   curvePointDistance,
   distanceToLineSegment,
+  lineSegment,
+  pointFrom,
   pointRotateRads,
+  getStarVerticesLocal,
 } from "@excalidraw/math";
 
 import { ellipse, ellipseDistanceFromPoint } from "@excalidraw/math/ellipse";
@@ -24,6 +27,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 export const distanceToElement = (
@@ -43,6 +47,8 @@ export const distanceToElement = (
       return distanceToRectanguloidElement(element, elementsMap, p);
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
+    case "star":
+      return distanceToStarElement(element, elementsMap, p);
     case "ellipse":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
@@ -89,6 +95,30 @@ const distanceToRectanguloidElement = (
  * @param p The point to consider
  * @returns The eucledian distance to the outline of the diamond
  */
+const distanceToStarElement = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  p: GlobalPoint,
+): number => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedPoint = pointRotateRads(p, center, -element.angle as Radians);
+  const locals = getStarVerticesLocal(element.width, element.height);
+  let min = Infinity;
+  for (let i = 0; i < locals.length; i++) {
+    const a = pointFrom<GlobalPoint>(
+      element.x + locals[i][0],
+      element.y + locals[i][1],
+    );
+    const j = (i + 1) % locals.length;
+    const b = pointFrom<GlobalPoint>(
+      element.x + locals[j][0],
+      element.y + locals[j][1],
+    );
+    min = Math.min(min, distanceToLineSegment(rotatedPoint, lineSegment(a, b)));
+  }
+  return min;
+};
+
 const distanceToDiamondElement = (
   element: ExcalidrawDiamondElement,
   elementsMap: ElementsMap,

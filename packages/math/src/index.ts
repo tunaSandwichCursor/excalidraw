@@ -7,6 +7,7 @@ export * from "./polygon";
 export * from "./range";
 export * from "./rectangle";
 export * from "./segment";
+export * from "./starGeometry";
 export * from "./triangle";
 export * from "./types";
 export * from "./vector";

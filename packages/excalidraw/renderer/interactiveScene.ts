@@ -8,6 +8,7 @@ import {
   bezierEquation,
   pointRotateRads,
   pointDistance,
+  getStarVerticesLocal,
 } from "@excalidraw/math";
 
 import {
@@ -365,6 +366,20 @@ const renderBindingHighlightForBindableElement_simple = (
           }
 
           break;
+        case "star": {
+          const verts = getStarVerticesLocal(
+            suggestedBinding.element.width,
+            suggestedBinding.element.height,
+          );
+          context.beginPath();
+          context.moveTo(verts[0][0], verts[0][1]);
+          for (let i = 1; i < verts.length; i++) {
+            context.lineTo(verts[i][0], verts[i][1]);
+          }
+          context.closePath();
+          context.stroke();
+          break;
+        }
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -461,6 +476,18 @@ const renderBindingHighlightForBindableElement_simple = (
             return pointFrom<GlobalPoint>(rotatedPoint[0], rotatedPoint[1]);
           },
         );
+      } else if (suggestedBinding.element.type === "star") {
+        const el = suggestedBinding.element;
+        const center = elementCenterPoint(el, elementsMap);
+        const verts = getStarVerticesLocal(el.width, el.height);
+        midpoints = verts.map((p, i) => {
+          const next = verts[(i + 1) % verts.length];
+          const mid = pointFrom<GlobalPoint>(
+            el.x + (p[0] + next[0]) / 2,
+            el.y + (p[1] + next[1]) / 2,
+          );
+          return pointRotateRads(mid, center, el.angle);
+        });
       } else {
         const basePoints = [
           {
@@ -707,6 +734,17 @@ const renderBindingHighlightForBindableElement_complex = (
           }
 
           break;
+        case "star": {
+          const verts = getStarVerticesLocal(element.width, element.height);
+          context.beginPath();
+          context.moveTo(verts[0][0] + offset, verts[0][1] + offset);
+          for (let i = 1; i < verts.length; i++) {
+            context.lineTo(verts[i][0] + offset, verts[i][1] + offset);
+          }
+          context.closePath();
+          context.stroke();
+          break;
+        }
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -831,6 +869,18 @@ const renderBindingHighlightForBindableElement_complex = (
             x: rotatedPoint[0] - element.x,
             y: rotatedPoint[1] - element.y,
           };
+        });
+      } else if (element.type === "star") {
+        const center = elementCenterPoint(element, allElementsMap);
+        const verts = getStarVerticesLocal(element.width, element.height);
+        midpoints = verts.map((p, i) => {
+          const next = verts[(i + 1) % verts.length];
+          const mid = pointFrom<GlobalPoint>(
+            element.x + (p[0] + next[0]) / 2,
+            element.y + (p[1] + next[1]) / 2,
+          );
+          const rotated = pointRotateRads(mid, center, element.angle);
+          return { x: rotated[0] - element.x, y: rotated[1] - element.y };
         });
       } else {
         const center = elementCenterPoint(element, allElementsMap);

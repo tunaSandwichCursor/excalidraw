@@ -12,6 +12,7 @@ import {
   pointFrom,
   pointRotateRads,
   rangeInclusive,
+  getStarVerticesLocal,
 } from "@excalidraw/math";
 
 import type {
@@ -33,12 +34,7 @@ const getNonLinearElementRelativePoints = (
     Element,
     ExcalidrawLinearElement | ExcalidrawFreeDrawElement
   >,
-): [
-  TopLeft: LocalPoint,
-  TopRight: LocalPoint,
-  BottomRight: LocalPoint,
-  BottomLeft: LocalPoint,
-] => {
+): readonly LocalPoint[] => {
   if (element.type === "diamond") {
     return [
       pointFrom(element.width / 2, 0),
@@ -46,6 +42,9 @@ const getNonLinearElementRelativePoints = (
       pointFrom(element.width / 2, element.height),
       pointFrom(0, element.height / 2),
     ];
+  }
+  if (element.type === "star") {
+    return getStarVerticesLocal(element.width, element.height);
   }
   return [
     pointFrom(0, 0),
