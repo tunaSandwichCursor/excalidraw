@@ -9301,7 +9301,8 @@ class App extends React.Component<AppProps, AppState> {
       | "diamond"
       | "ellipse"
       | "iframe"
-      | "embeddable",
+      | "embeddable"
+      | "stickyNote",
   ) {
     return this.state.currentItemRoundness === "round"
       ? {
