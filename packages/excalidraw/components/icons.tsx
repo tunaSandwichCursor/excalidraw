@@ -338,6 +338,16 @@ export const RectangleIcon = createIcon(
   tablerIconProps,
 );
 
+export const StickyNoteIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M4 4h16a1 1 0 0 1 1 1v10.6a1 1 0 0 1-.3.7l-5.4 5.4a1 1 0 0 1-.7.3H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+    <path d="M15 15v6" />
+    <path d="M15 15h6" />
+  </g>,
+  tablerIconProps,
+);
+
 // tabler-icons: square-rotated
 export const DiamondIcon = createIcon(
   <g strokeWidth="1.5">

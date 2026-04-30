@@ -9298,6 +9298,7 @@ class App extends React.Component<AppProps, AppState> {
     elementType:
       | "selection"
       | "rectangle"
+      | "stickyNote"
       | "diamond"
       | "ellipse"
       | "iframe"
@@ -9329,17 +9330,25 @@ class App extends React.Component<AppProps, AppState> {
       y: gridY,
     });
 
+    const isStickyNote = elementType === "stickyNote";
+
     const baseElementAttributes = {
       x: gridX,
       y: gridY,
-      strokeColor: this.state.currentItemStrokeColor,
-      backgroundColor: this.state.currentItemBackgroundColor,
-      fillStyle: this.state.currentItemFillStyle,
+      strokeColor: isStickyNote
+        ? "transparent"
+        : this.state.currentItemStrokeColor,
+      backgroundColor: isStickyNote
+        ? "#FDEFA3"
+        : this.state.currentItemBackgroundColor,
+      fillStyle: isStickyNote ? "solid" : this.state.currentItemFillStyle,
       strokeWidth: this.state.currentItemStrokeWidth,
       strokeStyle: this.state.currentItemStrokeStyle,
-      roughness: this.state.currentItemRoughness,
+      roughness: isStickyNote ? 0 : this.state.currentItemRoughness,
       opacity: this.state.currentItemOpacity,
-      roundness: this.getCurrentItemRoundness(elementType),
+      roundness: isStickyNote
+        ? { type: ROUNDNESS.ADAPTIVE_RADIUS }
+        : this.getCurrentItemRoundness(elementType),
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
     } as const;
@@ -10788,6 +10797,14 @@ class App extends React.Component<AppProps, AppState> {
         );
       }
 
+      if (newElement?.type === "stickyNote" && isInvisiblySmallElement(newElement)) {
+        const STICKY_NOTE_DEFAULT_SIZE = 200;
+        this.scene.mutateElement(newElement, {
+          width: STICKY_NOTE_DEFAULT_SIZE,
+          height: STICKY_NOTE_DEFAULT_SIZE,
+        });
+      }
+
       if (newElement) {
         this.scene.mutateElement(
           newElement,
@@ -10799,6 +10816,20 @@ class App extends React.Component<AppProps, AppState> {
         );
         // the above does not guarantee the scene to be rendered again, hence the trigger below
         this.scene.triggerUpdate();
+      }
+
+      if (newElement?.type === "stickyNote") {
+        this.store.scheduleCapture();
+        this.setState({
+          newElement: null,
+          selectedElementIds: { [newElement.id]: true },
+        });
+        this.startTextEditing({
+          sceneX: newElement.x + newElement.width / 2,
+          sceneY: newElement.y + newElement.height / 2,
+          container: newElement,
+        });
+        return;
       }
 
       if (pointerDownState.drag.hasOccurred) {
