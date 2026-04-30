@@ -279,10 +279,11 @@ export class API {
     };
     switch (type) {
       case "rectangle":
+      case "stickyNote":
       case "diamond":
       case "ellipse":
         element = newElement({
-          type: type as "rectangle" | "diamond" | "ellipse",
+          type: type as "rectangle" | "stickyNote" | "diamond" | "ellipse",
           ...base,
         });
         break;

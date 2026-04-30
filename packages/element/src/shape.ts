@@ -227,6 +227,7 @@ export const generateRoughOptions = (
 
   switch (element.type) {
     case "rectangle":
+    case "stickyNote":
     case "iframe":
     case "embeddable":
     case "diamond":
@@ -773,6 +774,7 @@ const _generateElementShape = (
   const isDarkMode = theme === THEME.DARK;
   switch (element.type) {
     case "rectangle":
+    case "stickyNote":
     case "iframe":
     case "embeddable": {
       let shape: ElementShapes[typeof element.type];
@@ -1079,6 +1081,7 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
 ): GeometricShape<Point> => {
   switch (element.type) {
     case "rectangle":
+    case "stickyNote":
     case "diamond":
     case "frame":
     case "magicframe":

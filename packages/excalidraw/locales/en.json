@@ -315,6 +315,7 @@
     "rectangle": "Rectangle",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
+    "stickyNote": "Sticky Note",
     "arrow": "Arrow",
     "line": "Line",
     "freedraw": "Draw",
@@ -347,6 +348,7 @@
     "magicframe": "Wireframe to code",
     "embeddable": "Web Embed",
     "selection": "Selection",
+    "stickyNote": "Sticky Note",
     "iframe": "IFrame"
   },
   "headings": {
