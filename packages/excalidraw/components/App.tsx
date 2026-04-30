@@ -133,6 +133,7 @@ import {
   newElement,
   newImageElement,
   newLinearElement,
+  newStickyNoteElement,
   newTextElement,
   refreshTextDimensions,
   deepCopyElement,
@@ -9301,7 +9302,8 @@ class App extends React.Component<AppProps, AppState> {
       | "diamond"
       | "ellipse"
       | "iframe"
-      | "embeddable",
+      | "embeddable"
+      | "stickyNote",
   ) {
     return this.state.currentItemRoundness === "round"
       ? {
@@ -9313,7 +9315,7 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private createGenericElementOnPointerDown = (
-    elementType: ExcalidrawGenericElement["type"] | "embeddable",
+    elementType: ExcalidrawGenericElement["type"] | "embeddable" | "stickyNote",
     pointerDownState: PointerDownState,
   ): void => {
     const [gridX, gridY] = getGridPoint(
@@ -9348,6 +9350,10 @@ class App extends React.Component<AppProps, AppState> {
     if (elementType === "embeddable") {
       element = newEmbeddableElement({
         type: "embeddable",
+        ...baseElementAttributes,
+      });
+    } else if (elementType === "stickyNote") {
+      element = newStickyNoteElement({
         ...baseElementAttributes,
       });
     } else {

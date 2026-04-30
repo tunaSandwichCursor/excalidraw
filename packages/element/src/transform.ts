@@ -26,6 +26,7 @@ import {
   newImageElement,
   newLinearElement,
   newMagicFrameElement,
+  newStickyNoteElement,
   newTextElement,
   type ElementConstructorOpts,
 } from "./newElement";
@@ -319,6 +320,17 @@ const bindLinearElementToElement = (
             });
             break;
           }
+          case "stickyNote": {
+            startBoundElement = newStickyNoteElement({
+              x: startX,
+              y: startY,
+              width,
+              height,
+              ...existingElement,
+              ...start,
+            });
+            break;
+          }
           default: {
             assertNever(
               linearElement as never,
@@ -392,6 +404,17 @@ const bindLinearElementToElement = (
               ...existingElement,
               ...end,
               type: endType,
+            });
+            break;
+          }
+          case "stickyNote": {
+            endBoundElement = newStickyNoteElement({
+              x: endX,
+              y: endY,
+              width,
+              height,
+              ...existingElement,
+              ...end,
             });
             break;
           }
