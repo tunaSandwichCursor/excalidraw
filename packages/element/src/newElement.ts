@@ -48,6 +48,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawStickyNoteElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -288,6 +289,36 @@ export const newTextElement = (
   );
 
   return textElement;
+};
+
+export const newStickyNoteElement = (
+  opts: {
+    text?: string;
+    originalText?: string;
+    fontSize?: number;
+    fontFamily?: FontFamilyValues;
+    textAlign?: TextAlign;
+    lineHeight?: ExcalidrawStickyNoteElement["lineHeight"];
+    autoResize?: boolean;
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawStickyNoteElement> => {
+  const fontFamily = opts.fontFamily || DEFAULT_FONT_FAMILY;
+  const fontSize = opts.fontSize || DEFAULT_FONT_SIZE;
+  const text = opts.text ?? "";
+  const textAlign = opts.textAlign || DEFAULT_TEXT_ALIGN;
+
+  const element: ExcalidrawStickyNoteElement = {
+    ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", opts),
+    text,
+    originalText: opts.originalText ?? text,
+    fontSize,
+    fontFamily,
+    textAlign,
+    lineHeight: opts.lineHeight || getLineHeight(fontFamily),
+    autoResize: opts.autoResize ?? true,
+  };
+
+  return newElementWith(element, {});
 };
 
 const getAdjustedDimensions = (
