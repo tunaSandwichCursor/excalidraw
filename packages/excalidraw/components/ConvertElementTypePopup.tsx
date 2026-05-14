@@ -62,6 +62,7 @@ import type {
   ConvertibleGenericTypes,
   ConvertibleLinearTypes,
   ConvertibleTypes,
+  ExcalidrawCrescentMoonElement,
   ExcalidrawDiamondElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
@@ -81,6 +82,7 @@ import { atom } from "../editor-jotai";
 import "./ConvertElementTypePopup.scss";
 import { ToolButton } from "./ToolButton";
 import {
+  CrescentMoonIcon,
   DiamondIcon,
   elbowArrowIcon,
   EllipseIcon,
@@ -101,10 +103,11 @@ type ExcalidrawConvertibleElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
   | ExcalidrawEllipseElement
+  | ExcalidrawCrescentMoonElement
   | ExcalidrawLinearElement;
 
 // indicates order of switching
-const GENERIC_TYPES = ["rectangle", "diamond", "ellipse"] as const;
+const GENERIC_TYPES = ["rectangle", "diamond", "ellipse", "crescentMoon"] as const;
 // indicates order of switching
 const LINEAR_TYPES = [
   "line",
@@ -303,6 +306,7 @@ const Panel = ({
           ["rectangle", RectangleIcon],
           ["diamond", DiamondIcon],
           ["ellipse", EllipseIcon],
+          ["crescentMoon", CrescentMoonIcon],
         ]
       : [];
 

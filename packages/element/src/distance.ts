@@ -18,6 +18,7 @@ import { elementCenterPoint } from "./bounds";
 
 import type {
   ElementsMap,
+  ExcalidrawCrescentMoonElement,
   ExcalidrawDiamondElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
@@ -44,6 +45,7 @@ export const distanceToElement = (
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
     case "ellipse":
+    case "crescentMoon":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
     case "arrow":
@@ -119,7 +121,7 @@ const distanceToDiamondElement = (
  * @returns The eucledian distance to the outline of the ellipse
  */
 const distanceToEllipseElement = (
-  element: ExcalidrawEllipseElement,
+  element: ExcalidrawEllipseElement | ExcalidrawCrescentMoonElement,
   elementsMap: ElementsMap,
   p: GlobalPoint,
 ): number => {

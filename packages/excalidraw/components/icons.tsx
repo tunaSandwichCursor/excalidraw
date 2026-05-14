@@ -358,6 +358,15 @@ export const EllipseIcon = createIcon(
   tablerIconProps,
 );
 
+// crescent moon shape
+export const CrescentMoonIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M14 3a8 8 0 0 1 0 18 A6 6 0 0 0 14 3z" />
+  </g>,
+  tablerIconProps,
+);
+
 // tabler-icons: arrow-narrow-right
 export const ArrowIcon = createIcon(
   <g strokeWidth="1.5">
