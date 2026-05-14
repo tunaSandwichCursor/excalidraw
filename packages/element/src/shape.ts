@@ -1097,7 +1097,6 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
   switch (element.type) {
     case "rectangle":
     case "diamond":
-    case "crescentMoon":
     case "frame":
     case "magicframe":
     case "embeddable":
@@ -1128,6 +1127,7 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
     }
 
     case "ellipse":
+    case "crescentMoon":
       return getEllipseShape(element);
 
     case "freedraw": {

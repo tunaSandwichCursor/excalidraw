@@ -106,7 +106,6 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> =
 type RectangularElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
-  | ExcalidrawCrescentMoonElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
@@ -181,7 +180,7 @@ export const getSelectionBoxShape = <Point extends GlobalPoint | LocalPoint>(
 
 // ellipse
 export const getEllipseShape = <Point extends GlobalPoint | LocalPoint>(
-  element: ExcalidrawEllipseElement,
+  element: ExcalidrawEllipseElement | ExcalidrawCrescentMoonElement,
 ): GeometricShape<Point> => {
   const { width, height, angle, x, y } = element;
 
