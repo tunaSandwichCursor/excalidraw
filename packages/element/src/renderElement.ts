@@ -882,6 +882,7 @@ export const renderElement = (
     case "rectangle":
     case "diamond":
     case "ellipse":
+    case "crescentMoon":
     case "line":
     case "arrow":
     case "image":
