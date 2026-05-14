@@ -879,13 +879,15 @@ const _generateElementShape = (
     case "crescentMoon": {
       const w = element.width;
       const h = element.height;
-      const cx = w * 0.6;
-      const outerRx = w * 0.6;
+      const tipX = w * 0.5;
+      const outerRx = w * 0.5;
       const outerRy = h / 2;
-      const innerRx = w * 0.4;
+      const innerRx = w * 0.35;
       const innerRy = h / 2;
       const shape: ElementShapes[typeof element.type] = generator.path(
-        `M ${cx} 0 A ${outerRx} ${outerRy} 0 1 0 ${cx} ${h} A ${innerRx} ${innerRy} 0 1 0 ${cx} 0 Z`,
+        `M ${tipX} 0 ` +
+        `A ${outerRx} ${outerRy} 0 1 0 ${tipX} ${h} ` +
+        `A ${innerRx} ${innerRy} 0 1 1 ${tipX} 0 Z`,
         generateRoughOptions(element, true, isDarkMode),
       );
       return shape;
