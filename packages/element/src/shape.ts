@@ -230,7 +230,8 @@ export const generateRoughOptions = (
     case "iframe":
     case "embeddable":
     case "diamond":
-    case "ellipse": {
+    case "ellipse":
+    case "crescentMoon": {
       options.fillStyle = element.fillStyle;
       options.fill = isTransparent(element.backgroundColor)
         ? undefined
@@ -875,6 +876,22 @@ const _generateElementShape = (
       );
       return shape;
     }
+    case "crescentMoon": {
+      const w = element.width;
+      const h = element.height;
+      const tipX = w * 0.5;
+      const outerRx = w * 0.5;
+      const outerRy = h / 2;
+      const innerRx = w * 0.35;
+      const innerRy = h / 2;
+      const shape: ElementShapes[typeof element.type] = generator.path(
+        `M ${tipX} 0 ` +
+        `A ${outerRx} ${outerRy} 0 1 0 ${tipX} ${h} ` +
+        `A ${innerRx} ${innerRy} 0 1 1 ${tipX} 0 Z`,
+        generateRoughOptions(element, true, isDarkMode),
+      );
+      return shape;
+    }
     case "line":
     case "arrow": {
       let shape: ElementShapes[typeof element.type];
@@ -1080,6 +1097,7 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
   switch (element.type) {
     case "rectangle":
     case "diamond":
+    case "crescentMoon":
     case "frame":
     case "magicframe":
     case "embeddable":

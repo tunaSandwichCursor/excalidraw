@@ -67,6 +67,7 @@ import type {
   ExcalidrawBindableElement,
   ExcalidrawDiamondElement,
   ExcalidrawElement,
+  ExcalidrawCrescentMoonElement,
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
@@ -473,6 +474,13 @@ export const intersectElementWithLineSegment = (
         line,
         offset,
       );
+    case "crescentMoon":
+      return intersectEllipseWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+      );
     case "line":
     case "freedraw":
     case "arrow":
@@ -710,7 +718,7 @@ const intersectDiamondWithLineSegment = (
  * @returns
  */
 const intersectEllipseWithLineSegment = (
-  element: ExcalidrawEllipseElement,
+  element: ExcalidrawEllipseElement | ExcalidrawCrescentMoonElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
   offset: number = 0,
@@ -810,7 +818,7 @@ export const isBindableElementInsideOtherBindable = (
       ];
       return corners.map((corner) => pointRotateRads(corner, center, angle));
     }
-    if (element.type === "ellipse") {
+    if (element.type === "ellipse" || element.type === "crescentMoon") {
       // For ellipse, test points at the extremes (top, right, bottom, left)
       const cx = x + width / 2;
       const cy = y + height / 2;
