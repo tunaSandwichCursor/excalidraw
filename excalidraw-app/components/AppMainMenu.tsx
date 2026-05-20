@@ -13,7 +13,11 @@ import type { Theme } from "@excalidraw/element/types";
 import { LanguageList } from "../app-language/LanguageList";
 import { isExcalidrawPlusSignedUser } from "../app_constants";
 
+import { UIColorThemeSubmenu } from "./UIColorThemeSubmenu";
+
 import { saveDebugState } from "./DebugCanvas";
+
+import type { UIColorThemeId } from "../themes/ui-themes";
 
 export const AppMainMenu: React.FC<{
   onCollabDialogOpen: () => any;
@@ -21,6 +25,8 @@ export const AppMainMenu: React.FC<{
   isCollabEnabled: boolean;
   theme: Theme | "system";
   setTheme: (theme: Theme | "system") => void;
+  uiColorTheme: UIColorThemeId;
+  setUIColorTheme: (themeId: UIColorThemeId) => void;
   refresh: () => void;
 }> = React.memo((props) => {
   return (
@@ -82,6 +88,10 @@ export const AppMainMenu: React.FC<{
         allowSystemTheme
         theme={props.theme}
         onSelect={props.setTheme}
+      />
+      <UIColorThemeSubmenu
+        uiColorTheme={props.uiColorTheme}
+        onSelect={props.setUIColorTheme}
       />
       <MainMenu.ItemCustom>
         <LanguageList style={{ width: "100%" }} />
