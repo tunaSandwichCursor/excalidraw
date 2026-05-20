@@ -133,6 +133,7 @@ import { isBrowserStorageStateNewer } from "./data/tabSync";
 import { ShareDialog, shareDialogStateAtom } from "./share/ShareDialog";
 import CollabError, { collabErrorIndicatorAtom } from "./collab/CollabError";
 import { useHandleAppTheme } from "./useHandleAppTheme";
+import { useHandleUIColorTheme } from "./useHandleUIColorTheme";
 import { getPreferredLanguage } from "./app-language/language-detector";
 import { useAppLangCode } from "./app-language/language-state";
 import DebugCanvas, {
@@ -378,6 +379,8 @@ const ExcalidrawWrapper = () => {
   const isCollabDisabled = isRunningInIframe();
 
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
+  const { uiColorTheme, setUIColorTheme, colorThemeClassName } =
+    useHandleUIColorTheme();
 
   const [langCode, setLangCode] = useAppLangCode();
 
@@ -904,7 +907,7 @@ const ExcalidrawWrapper = () => {
   return (
     <div
       style={{ height: "100%" }}
-      className={clsx("excalidraw-app", {
+      className={clsx("excalidraw-app", colorThemeClassName, {
         "is-collaborating": isCollaborating,
       })}
     >
@@ -989,6 +992,8 @@ const ExcalidrawWrapper = () => {
           isCollabEnabled={!isCollabDisabled}
           theme={appTheme}
           setTheme={(theme) => setAppTheme(theme)}
+          uiColorTheme={uiColorTheme}
+          setUIColorTheme={setUIColorTheme}
           refresh={() => forceRefresh((prev) => !prev)}
         />
         <AppWelcomeScreen
