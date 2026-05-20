@@ -34,7 +34,7 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import { elementCenterPoint, getDiamondPoints, getStarPoints } from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -53,6 +53,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawBindableElement,
   ExcalidrawDiamondElement,
+  ExcalidrawStarElement,
   ExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
@@ -456,6 +457,62 @@ export function deconstructDiamondElement(
   ];
 
   const shape = [sides, corners.flat()] as ElementShape;
+
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
+export function getStarBaseCorners(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): GlobalPoint[] {
+  const starPoints = getStarPoints(element);
+  const corners: GlobalPoint[] = [];
+
+  for (let i = 0; i < starPoints.length; i += 2) {
+    corners.push(
+      pointFrom(element.x + starPoints[i], element.y + starPoints[i + 1]),
+    );
+  }
+
+  if (offset) {
+    const center = pointFrom(
+      element.x + element.width / 2,
+      element.y + element.height / 2,
+    );
+    return corners.map((corner) => {
+      const vector = vectorFromPoint(corner, center);
+      const scaled = vectorScale(
+        vector,
+        1 + offset / Math.hypot(vector[0], vector[1]),
+      );
+      return pointFromVector(scaled, center) as GlobalPoint;
+    });
+  }
+
+  return corners;
+}
+
+export function deconstructStarElement(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]] {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const corners = getStarBaseCorners(element, offset);
+  const sides = corners.map((corner, index) =>
+    lineSegment<GlobalPoint>(
+      corner,
+      corners[(index + 1) % corners.length],
+    ),
+  );
+
+  const shape = [sides, []] as ElementShape;
 
   setElementShapesCacheEntry(element, shape, offset);
 

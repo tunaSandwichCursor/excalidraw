@@ -51,6 +51,7 @@ import { getElementShape } from "./shape";
 
 import {
   deconstructDiamondElement,
+  deconstructStarElement,
   deconstructRectanguloidElement,
 } from "./utils";
 
@@ -202,6 +203,23 @@ export class ElementBounds {
       const minY = Math.min(y11, y12, y22, y21);
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
+      bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      const starPoints = getStarPoints(element);
+      const rotatedPoints: GlobalPoint[] = [];
+      for (let i = 0; i < starPoints.length; i += 2) {
+        rotatedPoints.push(
+          pointRotateRads(
+            pointFrom(element.x + starPoints[i], element.y + starPoints[i + 1]),
+            pointFrom(cx, cy),
+            element.angle,
+          ),
+        );
+      }
+      const minX = Math.min(...rotatedPoints.map((p) => p[0]));
+      const minY = Math.min(...rotatedPoints.map((p) => p[1]));
+      const maxX = Math.max(...rotatedPoints.map((p) => p[0]));
+      const maxY = Math.max(...rotatedPoints.map((p) => p[1]));
       bounds = [minX, minY, maxX, maxY];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
@@ -369,6 +387,9 @@ export const getElementLineSegments = (
     const rotatedSides = getRotatedSides(sides, center, element.angle);
 
     return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "star") {
+    const [sides] = deconstructStarElement(element);
+    return getRotatedSides(sides, center, element.angle);
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
@@ -535,6 +556,33 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+/** Inner/outer radius ratio for a regular 5-pointed star (sin 18° / sin 54°). */
+export const STAR_INNER_RADIUS_RATIO = 0.3819660112501051;
+
+/** @returns flat array of local [x, y] pairs for a 5-pointed star (10 vertices). */
+export const getStarPoints = (element: ExcalidrawElement) => {
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const outerRx = Math.max(Math.floor(element.width / 2), 1);
+  const outerRy = Math.max(Math.floor(element.height / 2), 1);
+  const innerRx = outerRx * STAR_INNER_RADIUS_RATIO;
+  const innerRy = outerRy * STAR_INNER_RADIUS_RATIO;
+  const points: number[] = [];
+
+  for (let i = 0; i < 5; i++) {
+    const outerAngle = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    const innerAngle = outerAngle + Math.PI / 5;
+    points.push(
+      cx + outerRx * Math.cos(outerAngle),
+      cy + outerRy * Math.sin(outerAngle),
+      cx + innerRx * Math.cos(innerAngle),
+      cy + innerRy * Math.sin(innerAngle),
+    );
+  }
+
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes
