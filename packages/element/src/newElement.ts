@@ -323,9 +323,11 @@ export const newStickyNoteElement = (
       width,
       height,
       backgroundColor:
-        opts.backgroundColor ?? STICKY_NOTE_DEFAULT_BACKGROUND,
+        opts.backgroundColor && opts.backgroundColor !== "transparent"
+          ? opts.backgroundColor
+          : STICKY_NOTE_DEFAULT_BACKGROUND,
       fillStyle: opts.fillStyle ?? "solid",
-      strokeColor: opts.strokeColor ?? "transparent",
+      strokeColor: opts.strokeColor ?? DEFAULT_ELEMENT_PROPS.strokeColor,
       strokeWidth: opts.strokeWidth ?? 1,
       roughness: opts.roughness ?? 0,
       roundness: opts.roundness ?? {
