@@ -266,6 +266,34 @@ export const dragNewElement = ({
   } | null;
   informMutation?: boolean;
 }) => {
+  if (newElement.type === "star") {
+    let radiusX = Math.abs(x - originX);
+    let radiusY = Math.abs(y - originY);
+
+    if (shouldMaintainAspectRatio) {
+      const radius = Math.max(radiusX, radiusY);
+      radiusX = radius;
+      radiusY = radius;
+    }
+
+    width = Math.max(radiusX * 2, 1);
+    height = Math.max(radiusY * 2, 1);
+    const newX = originX - radiusX + (originOffset?.x ?? 0);
+    const newY = originY - radiusY + (originOffset?.y ?? 0);
+
+    scene.mutateElement(
+      newElement,
+      {
+        x: newX,
+        y: newY,
+        width,
+        height,
+      },
+      { informMutation, isDragging: false },
+    );
+    return;
+  }
+
   if (shouldMaintainAspectRatio && newElement.type !== "selection") {
     if (widthAspectRatio) {
       height = width / widthAspectRatio;
