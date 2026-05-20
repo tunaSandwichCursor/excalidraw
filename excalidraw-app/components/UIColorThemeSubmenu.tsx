@@ -3,10 +3,7 @@ import DropdownMenuSub from "@excalidraw/excalidraw/components/dropdownMenu/Drop
 import { palette } from "@excalidraw/excalidraw/components/icons";
 import React from "react";
 
-import {
-  UI_COLOR_THEMES,
-  type UIColorThemeId,
-} from "../themes/ui-themes";
+import { UI_COLOR_THEMES, type UIColorThemeId } from "../themes/ui-themes";
 
 const ThemeSwatch = ({
   lightBackground,

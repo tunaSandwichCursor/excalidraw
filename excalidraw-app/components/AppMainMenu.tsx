@@ -12,11 +12,12 @@ import type { Theme } from "@excalidraw/element/types";
 
 import { LanguageList } from "../app-language/LanguageList";
 import { isExcalidrawPlusSignedUser } from "../app_constants";
-import type { UIColorThemeId } from "../themes/ui-themes";
 
 import { UIColorThemeSubmenu } from "./UIColorThemeSubmenu";
 
 import { saveDebugState } from "./DebugCanvas";
+
+import type { UIColorThemeId } from "../themes/ui-themes";
 
 export const AppMainMenu: React.FC<{
   onCollabDialogOpen: () => any;

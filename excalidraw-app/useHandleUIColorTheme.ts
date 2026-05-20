@@ -10,14 +10,19 @@ import {
 
 export const useHandleUIColorTheme = () => {
   const [uiColorTheme, setUIColorTheme] = useState<UIColorThemeId>(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_UI_COLOR_THEME);
+    const stored = localStorage.getItem(
+      STORAGE_KEYS.LOCAL_STORAGE_UI_COLOR_THEME,
+    );
     return stored && isUIColorThemeId(stored)
       ? stored
       : DEFAULT_UI_COLOR_THEME_ID;
   });
 
   useLayoutEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOCAL_STORAGE_UI_COLOR_THEME, uiColorTheme);
+    localStorage.setItem(
+      STORAGE_KEYS.LOCAL_STORAGE_UI_COLOR_THEME,
+      uiColorTheme,
+    );
   }, [uiColorTheme]);
 
   const uiColorThemeDefinition = getUIColorThemeById(uiColorTheme);

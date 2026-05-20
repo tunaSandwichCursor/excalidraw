@@ -111,9 +111,7 @@ export const DEFAULT_UI_COLOR_THEME_ID: UIColorThemeId = "default";
 export const getUIColorThemeById = (
   id: UIColorThemeId,
 ): UIColorThemeDefinition => {
-  return (
-    UI_COLOR_THEMES.find((theme) => theme.id === id) ?? UI_COLOR_THEMES[0]
-  );
+  return UI_COLOR_THEMES.find((theme) => theme.id === id) ?? UI_COLOR_THEMES[0];
 };
 
 export const isUIColorThemeId = (value: string): value is UIColorThemeId => {
