@@ -1995,16 +1995,16 @@ const _renderInteractiveScene = ({
       );
 
       context.save();
-      if (appState.theme === THEME.LIGHT) {
+      if (appState.theme === THEME.DARK) {
         if (focus) {
-          context.fillStyle = "rgba(255, 124, 0, 0.4)";
+          context.fillStyle = "rgba(229, 82, 0, 0.4)";
         } else {
-          context.fillStyle = "rgba(255, 226, 0, 0.4)";
+          context.fillStyle = "rgba(99, 52, 0, 0.4)";
         }
       } else if (focus) {
-        context.fillStyle = "rgba(229, 82, 0, 0.4)";
+        context.fillStyle = "rgba(255, 124, 0, 0.4)";
       } else {
-        context.fillStyle = "rgba(99, 52, 0, 0.4)";
+        context.fillStyle = "rgba(255, 226, 0, 0.4)";
       }
 
       const zoomFactor = isFrameLikeElement(element) ? appState.zoom.value : 1;
