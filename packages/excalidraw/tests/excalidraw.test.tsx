@@ -353,6 +353,24 @@ describe("<Excalidraw/>", () => {
         expect(h.state.exportWithDarkMode).toBe(true);
       });
     });
+
+    it("should apply the `theme--sunset` class on the container when theme is sunset", async () => {
+      const { container } = await render(<Excalidraw theme={THEME.SUNSET} />);
+
+      expect(h.state.theme).toBe(THEME.SUNSET);
+
+      await waitFor(() => {
+        const root = container.querySelector(".excalidraw") as HTMLElement;
+        expect(root).toBeTruthy();
+        expect(root.classList.contains("theme--sunset")).toBe(true);
+        expect(root.classList.contains("theme--dark")).toBe(false);
+      });
+    });
+
+    it("should not export with dark mode when theme is sunset", async () => {
+      await render(<Excalidraw theme={THEME.SUNSET} />);
+      expect(h.state.exportWithDarkMode).toBe(false);
+    });
   });
 
   describe("Test name prop", () => {

@@ -189,6 +189,7 @@ export const getFontFamilyFallbacks = (
 export const THEME = {
   LIGHT: "light",
   DARK: "dark",
+  SUNSET: "sunset",
 } as const;
 
 export const DARK_THEME_FILTER = "invert(93%) hue-rotate(180deg)";

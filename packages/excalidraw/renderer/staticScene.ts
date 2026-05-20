@@ -51,6 +51,11 @@ const GridLineColor = {
     bold: applyDarkModeFilter("#dddddd"),
     regular: applyDarkModeFilter("#e5e5e5"),
   },
+  // Sunset uses light-mode canvas, just slightly warmer grid lines.
+  [THEME.SUNSET]: {
+    bold: "#e8c9b1",
+    regular: "#efd6c0",
+  },
 } as const;
 
 const strokeGrid = (

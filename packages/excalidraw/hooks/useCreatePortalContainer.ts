@@ -25,6 +25,7 @@ export const useCreatePortalContainer = (opts?: {
         editorInterface.formFactor === "phone",
       );
       div.classList.toggle("theme--dark", theme === THEME.DARK);
+      div.classList.toggle("theme--sunset", theme === THEME.SUNSET);
     }
   }, [div, theme, editorInterface.formFactor, opts?.className]);
 
