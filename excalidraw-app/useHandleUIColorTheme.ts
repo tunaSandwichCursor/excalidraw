@@ -3,7 +3,6 @@ import { useCallback, useLayoutEffect, useState } from "react";
 import { STORAGE_KEYS } from "./app_constants";
 import {
   DEFAULT_UI_COLOR_THEME_ID,
-  getUIColorThemeById,
   isUIColorThemeId,
   type UIColorThemeId,
 } from "./themes/ui-themes";
@@ -25,8 +24,6 @@ export const useHandleUIColorTheme = () => {
     );
   }, [uiColorTheme]);
 
-  const uiColorThemeDefinition = getUIColorThemeById(uiColorTheme);
-
   const colorThemeClassName =
     uiColorTheme === DEFAULT_UI_COLOR_THEME_ID
       ? undefined
@@ -39,7 +36,6 @@ export const useHandleUIColorTheme = () => {
   return {
     uiColorTheme,
     setUIColorTheme: onUIColorThemeChange,
-    uiColorThemeDefinition,
     colorThemeClassName,
   };
 };

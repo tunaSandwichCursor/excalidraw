@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  DEFAULT_UI_COLOR_THEME_ID,
   getUIColorThemeById,
   isUIColorThemeId,
   UI_COLOR_THEMES,
+  type UIColorThemeId,
 } from "./ui-themes";
 
 describe("ui-themes", () => {
@@ -17,16 +17,16 @@ describe("ui-themes", () => {
     expect(isUIColorThemeId("invalid")).toBe(false);
   });
 
-  it("returns sunset theme with light and dark variants", () => {
+  it("returns sunset theme with expected metadata", () => {
     const sunset = getUIColorThemeById("sunset");
     expect(sunset.name).toBe("Sunset");
-    expect(sunset.light["--color-primary"]).toBe("#c44d6e");
-    expect(sunset.dark["--color-primary"]).toBe("#f4a574");
-    expect(sunset.lightBackground).toBeTruthy();
-    expect(sunset.darkBackground).toBeTruthy();
+    expect(sunset.lightBackground).toBe("#fff6f0");
+    expect(sunset.darkBackground).toBe("#1a1218");
   });
 
   it("falls back to default for unknown id", () => {
-    expect(getUIColorThemeById(DEFAULT_UI_COLOR_THEME_ID).id).toBe("default");
+    expect(
+      getUIColorThemeById("nonexistent" as unknown as UIColorThemeId).id,
+    ).toBe("default");
   });
 });
