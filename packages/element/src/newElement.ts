@@ -10,6 +10,10 @@ import {
   getFontString,
   getUpdatedTimestamp,
   getLineHeight,
+  STICKY_NOTE_DEFAULT_BACKGROUND,
+  STICKY_NOTE_DEFAULT_HEIGHT,
+  STICKY_NOTE_DEFAULT_WIDTH,
+  ROUNDNESS,
 } from "@excalidraw/common";
 
 import type { Radians } from "@excalidraw/math";
@@ -26,11 +30,16 @@ import { normalizeText, measureText } from "./textMeasurements";
 import { wrapText } from "./textWrapping";
 
 import { isLineElement } from "./typeChecks";
+import {
+  getDefaultStickyNoteAttributes,
+  refreshStickyNoteText,
+} from "./stickyNoteElement";
 
 import type {
   ExcalidrawElement,
   ExcalidrawImageElement,
   ExcalidrawTextElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawLinearElement,
   ExcalidrawGenericElement,
   NonDeleted,
@@ -288,6 +297,43 @@ export const newTextElement = (
   );
 
   return textElement;
+};
+
+export const newStickyNoteElement = (
+  opts: {
+    text?: string;
+    originalText?: string;
+    fontSize?: number;
+    fontFamily?: FontFamilyValues;
+    textAlign?: TextAlign;
+    verticalAlign?: VerticalAlign;
+    lineHeight?: ExcalidrawStickyNoteElement["lineHeight"];
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawStickyNoteElement> => {
+  const defaults = getDefaultStickyNoteAttributes();
+  const fontFamily = opts.fontFamily || DEFAULT_FONT_FAMILY;
+  const fontSize = opts.fontSize || DEFAULT_FONT_SIZE;
+  const lineHeight = opts.lineHeight || getLineHeight(fontFamily);
+  const textAlign = opts.textAlign || DEFAULT_TEXT_ALIGN;
+  const verticalAlign = opts.verticalAlign || DEFAULT_VERTICAL_ALIGN;
+  const originalText = opts.originalText ?? opts.text ?? "";
+
+  const stickyNoteProps: ExcalidrawStickyNoteElement = {
+    ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", {
+      ...defaults,
+      ...opts,
+    }),
+    fontSize,
+    fontFamily,
+    textAlign,
+    verticalAlign,
+    originalText,
+    text: "",
+    lineHeight,
+  };
+
+  const stickyNote = newElementWith(stickyNoteProps, {});
+  return newElementWith(stickyNote, refreshStickyNoteText(stickyNote, originalText));
 };
 
 const getAdjustedDimensions = (

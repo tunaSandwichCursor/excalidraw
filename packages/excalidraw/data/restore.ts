@@ -3,6 +3,7 @@ import { isFiniteNumber, pointFrom } from "@excalidraw/math";
 import {
   type CombineBrandsIfNeeded,
   DEFAULT_FONT_FAMILY,
+  DEFAULT_FONT_SIZE,
   DEFAULT_TEXT_ALIGN,
   DEFAULT_VERTICAL_ALIGN,
   FONT_FAMILY,
@@ -117,6 +118,7 @@ export const AllowedExcalidrawActiveTools: Record<
   hand: true,
   laser: false,
   magicframe: false,
+  stickyNote: true,
 };
 
 export type RestoredDataState = {
@@ -528,6 +530,19 @@ export const restoreElement = (
     case "iframe":
     case "embeddable":
       return restoreElementWithProperties(element, {});
+    case "stickyNote":
+      return restoreElementWithProperties(element, {
+        fontSize: element.fontSize ?? DEFAULT_FONT_SIZE,
+        fontFamily:
+          typeof element.fontFamily === "string"
+            ? getFontFamilyByName(element.fontFamily)
+            : element.fontFamily ?? DEFAULT_FONT_FAMILY,
+        text: element.text ?? "",
+        originalText: element.originalText ?? element.text ?? "",
+        textAlign: element.textAlign ?? DEFAULT_TEXT_ALIGN,
+        verticalAlign: element.verticalAlign ?? DEFAULT_VERTICAL_ALIGN,
+        lineHeight: element.lineHeight ?? getLineHeight(element.fontFamily),
+      });
     case "magicframe":
     case "frame":
       return restoreElementWithProperties(element, {

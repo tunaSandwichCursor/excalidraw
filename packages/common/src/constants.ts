@@ -461,7 +461,13 @@ export const TOOL_TYPE = {
   magicframe: "magicframe",
   embeddable: "embeddable",
   laser: "laser",
+  stickyNote: "stickyNote",
 } as const;
+
+export const STICKY_NOTE_DEFAULT_WIDTH = 200;
+export const STICKY_NOTE_DEFAULT_HEIGHT = 200;
+export const STICKY_NOTE_DEFAULT_BACKGROUND = "#FDEFA3";
+export const STICKY_NOTE_PADDING = 8;
 
 export const EDITOR_LS_KEYS = {
   OAI_API_KEY: "excalidraw-oai-api-key",

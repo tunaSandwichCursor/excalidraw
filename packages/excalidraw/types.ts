@@ -32,6 +32,7 @@ import type {
   OrderedExcalidrawElement,
   ExcalidrawNonSelectionElement,
   BindMode,
+  ExcalidrawEditableTextElement,
   ExcalidrawTextElement,
 } from "@excalidraw/element/types";
 
@@ -156,7 +157,8 @@ export type ToolType =
   | "frame"
   | "magicframe"
   | "embeddable"
-  | "laser";
+  | "laser"
+  | "stickyNote";
 
 export type ElementOrToolType = ExcalidrawElementType | ToolType | "custom";
 
@@ -332,7 +334,7 @@ export interface AppState {
   /**
    * set when a new text is created or when an existing text is being edited
    */
-  editingTextElement: ExcalidrawTextElement | null;
+  editingTextElement: ExcalidrawEditableTextElement | null;
   activeTool: {
     /**
      * indicates a previous tool we should revert back to if we deselect the

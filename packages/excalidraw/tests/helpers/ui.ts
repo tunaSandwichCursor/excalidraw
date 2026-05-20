@@ -32,6 +32,7 @@ import type {
   ExcalidrawTextElement,
   ExcalidrawArrowElement,
   ExcalidrawRectangleElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawEllipseElement,
   ExcalidrawDiamondElement,
   ExcalidrawTextContainer,
@@ -440,6 +441,8 @@ type Element<T extends DrawingToolName> = T extends "line" | "freedraw"
   ? ExcalidrawTextElement
   : T extends "rectangle"
   ? ExcalidrawRectangleElement
+  : T extends "stickyNote"
+  ? ExcalidrawStickyNoteElement
   : T extends "ellipse"
   ? ExcalidrawEllipseElement
   : T extends "diamond"
@@ -528,6 +531,9 @@ export class UI {
 
       mouse.reset();
       mouse.click(x, clickY);
+    } else if (type === "stickyNote") {
+      mouse.reset();
+      mouse.click(x, y);
     } else if ((type === "line" || type === "arrow") && points.length > 2) {
       points.forEach((point) => {
         mouse.reset();

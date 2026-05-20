@@ -53,6 +53,7 @@ import {
   ZOOM_STEP,
   POINTER_EVENTS,
   TOOL_TYPE,
+  STICKY_NOTE_DEFAULT_BACKGROUND,
   supportsResizeObserver,
   DEFAULT_COLLISION_THRESHOLD,
   DEFAULT_TEXT_ALIGN,
@@ -134,6 +135,8 @@ import {
   newImageElement,
   newLinearElement,
   newTextElement,
+  newStickyNoteElement,
+  refreshStickyNoteText,
   refreshTextDimensions,
   deepCopyElement,
   duplicateElements,
@@ -157,6 +160,7 @@ import {
   isFlowchartNodeElement,
   isBindableElement,
   isTextElement,
+  isStickyNoteElement,
   getNormalizedDimensions,
   isElementCompletelyInViewport,
   isElementInViewport,
@@ -268,6 +272,8 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawGenericElement,
   ExcalidrawLinearElement,
+  ExcalidrawEditableTextElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawTextElement,
   NonDeleted,
   InitializedExcalidrawImageElement,
@@ -5887,6 +5893,7 @@ class App extends React.Component<AppProps, AppState> {
 
     if (
       activeTextElement &&
+      isTextElement(activeTextElement) &&
       !activeTextElement.isDeleted &&
       !activeTextElement.autoResize &&
       isPointHittingTextAutoResizeHandle(
@@ -6515,6 +6522,15 @@ class App extends React.Component<AppProps, AppState> {
       // shouldn't edit/create text when inside line editor (often false positive)
 
       if (!this.state.selectedLinearElement?.isEditing) {
+        const hitElement = this.getElementAtPosition(sceneX, sceneY);
+
+        if (hitElement && isStickyNoteElement(hitElement)) {
+          this.handleStickyNoteWysiwyg(hitElement, {
+            isExistingElement: true,
+          });
+          return;
+        }
+
         const container = this.getTextBindableContainerAtPosition(
           sceneX,
           sceneY,
@@ -7858,6 +7874,8 @@ class App extends React.Component<AppProps, AppState> {
       }
     } else if (this.state.activeTool.type === "text") {
       this.handleTextOnPointerDown(event, pointerDownState);
+    } else if (this.state.activeTool.type === "stickyNote") {
+      this.handleStickyNoteOnPointerDown(event, pointerDownState);
     } else if (
       this.state.activeTool.type === "arrow" ||
       this.state.activeTool.type === "line"
@@ -8756,6 +8774,146 @@ class App extends React.Component<AppProps, AppState> {
       point.y < y2 + boundsPadding + threshold
     );
   }
+
+  private handleStickyNoteWysiwyg = (
+    element: ExcalidrawStickyNoteElement,
+    {
+      isExistingElement = false,
+      initialCaretSceneCoords = null,
+    }: {
+      isExistingElement?: boolean;
+      initialCaretSceneCoords?: { x: number; y: number } | null;
+    },
+  ) => {
+    const updateElement = (nextOriginalText: string, isDeleted: boolean) => {
+      this.scene.replaceAllElements([
+        ...this.scene.getElementsIncludingDeleted().map((_element) => {
+          if (_element.id === element.id && isStickyNoteElement(_element)) {
+            return newElementWith(_element, {
+              ...refreshStickyNoteText(_element, nextOriginalText),
+              isDeleted: isDeleted ?? _element.isDeleted,
+            });
+          }
+          return _element;
+        }),
+      ]);
+    };
+
+    textWysiwyg({
+      id: element.id,
+      canvas: this.canvas,
+      getViewportCoords: (x, y) => {
+        const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
+          {
+            sceneX: x,
+            sceneY: y,
+          },
+          this.state,
+        );
+        return [
+          viewportX - this.state.offsetLeft,
+          viewportY - this.state.offsetTop,
+        ];
+      },
+      onChange: withBatchedUpdates((nextOriginalText) => {
+        updateElement(nextOriginalText, false);
+      }),
+      onSubmit: withBatchedUpdates(({ viaKeyboard, nextOriginalText }) => {
+        const isDeleted = !nextOriginalText.trim();
+        updateElement(nextOriginalText, isDeleted);
+
+        const elementIdToSelect = viaKeyboard && !isDeleted ? element.id : null;
+
+        if (elementIdToSelect) {
+          flushSync(() => {
+            this.setState((prevState) => ({
+              selectedElementIds: makeNextSelectedElementIds(
+                {
+                  ...prevState.selectedElementIds,
+                  [elementIdToSelect]: true,
+                },
+                prevState,
+              ),
+            }));
+          });
+        }
+
+        if (!isDeleted || isExistingElement) {
+          this.store.scheduleCapture();
+        }
+
+        flushSync(() => {
+          this.setState({
+            newElement: null,
+            editingTextElement: null,
+          });
+        });
+
+        if (this.state.activeTool.locked) {
+          setCursorForShape(this.interactiveCanvas, this.state);
+        }
+
+        this.focusContainer();
+      }),
+      element,
+      excalidrawContainer: this.excalidrawContainerRef.current,
+      app: this,
+      initialCaretSceneCoords,
+      autoSelect: !this.editorInterface.isTouchScreen,
+    });
+    this.deselectElements();
+    updateElement(element.originalText, false);
+    this.setState({
+      editingTextElement: element,
+    });
+  };
+
+  private handleStickyNoteOnPointerDown = (
+    _event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    if (this.state.editingTextElement) {
+      return;
+    }
+
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const element = newStickyNoteElement({
+      x: gridX,
+      y: gridY,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor:
+        this.state.currentItemBackgroundColor === COLOR_PALETTE.transparent
+          ? STICKY_NOTE_DEFAULT_BACKGROUND
+          : this.state.currentItemBackgroundColor,
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: this.state.currentItemRoughness,
+      opacity: this.state.currentItemOpacity,
+      fontSize: this.state.currentItemFontSize,
+      fontFamily: this.state.currentItemFontFamily,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(element);
+    this.setState({
+      multiElement: null,
+      newElement: element,
+    });
+    resetCursor(this.interactiveCanvas);
+  };
 
   private handleTextOnPointerDown = (
     event: React.PointerEvent<HTMLElement>,
@@ -10234,7 +10392,7 @@ class App extends React.Component<AppProps, AppState> {
               linearElementEditor,
             )!,
           });
-        } else {
+        } else if (!isStickyNoteElement(newElement)) {
           pointerDownState.lastCoords.x = pointerCoords.x;
           pointerDownState.lastCoords.y = pointerCoords.y;
           this.maybeDragNewGenericElement(pointerDownState, event, false);
@@ -10771,9 +10929,24 @@ class App extends React.Component<AppProps, AppState> {
         });
       }
 
+      if (isStickyNoteElement(newElement)) {
+        this.resetCursor();
+        this.handleStickyNoteWysiwyg(newElement, {
+          isExistingElement: true,
+        });
+        if (!this.state.activeTool.locked) {
+          this.setState({
+            activeTool: updateActiveTool(this.state, {
+              type: this.state.preferredSelectionTool.type,
+            }),
+          });
+        }
+      }
+
       if (
         activeTool.type !== "selection" &&
         newElement &&
+        !isStickyNoteElement(newElement) &&
         isInvisiblySmallElement(newElement)
       ) {
         // remove invisible element which was added in onPointerDown
