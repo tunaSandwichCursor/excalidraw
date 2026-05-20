@@ -57,6 +57,7 @@ import {
   save,
   searchIcon,
   SunIcon,
+  SunsetIcon,
   TrashIcon,
   usersIcon,
 } from "../icons";
@@ -265,6 +266,11 @@ export const ToggleTheme = (
             value: THEME.DARK,
             label: MoonIcon,
             ariaLabel: `${t("buttons.darkMode")} - ${shortcut}`,
+          },
+          {
+            value: THEME.SUNSET,
+            label: SunsetIcon,
+            ariaLabel: t("buttons.sunsetMode"),
           },
           {
             value: "system",

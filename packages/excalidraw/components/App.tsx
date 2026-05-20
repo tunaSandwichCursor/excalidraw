@@ -3487,6 +3487,10 @@ class App extends React.Component<AppProps, AppState> {
       "theme--dark",
       this.state.theme === THEME.DARK,
     );
+    this.excalidrawContainerRef.current?.classList.toggle(
+      "theme--sunset",
+      this.state.theme === THEME.SUNSET,
+    );
 
     if (
       this.state.selectedLinearElement?.isEditing &&

@@ -40,6 +40,8 @@ export const useHandleAppTheme = () => {
       ) {
         event.preventDefault();
         event.stopImmediatePropagation();
+        // Alt+Shift+D toggles between light and dark only — leaves the
+        // Sunset theme to be selected explicitly from the menu.
         setAppTheme(editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK);
       }
     };

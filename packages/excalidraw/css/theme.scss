@@ -278,4 +278,76 @@
     --color-border-outline-variant: #46464f;
     --color-surface-primary-container: #403e6a;
   }
+
+  // Sunset — a warm dusk UI palette. Treats canvas like light mode (no dark
+  // filter), but recolors the editor chrome with peach/coral/magenta/gold
+  // tones. Keep contrast/readability high; see LUC-39 for design intent.
+  &.theme--sunset {
+    --button-destructive-bg-color: #ffd2c0;
+    --button-destructive-color: #6e1605;
+
+    --button-gray-1: #ffd2a8;
+    --button-gray-2: #f7b685;
+    --button-gray-3: #ec9e63;
+    --mobile-action-button-bg: rgba(255, 218, 185, 0.7);
+    --mobile-color-border: var(--default-border-color);
+    --button-special-active-bg-color: #ffcb88;
+    --dialog-border-color: #c97740;
+    --focus-highlight-color: #ff7440;
+    --icon-green-fill-color: #b34a0e;
+    --default-bg-color: #ffe7d2;
+    --input-bg-color: #fff1e0;
+    --input-border-color: #e5a06e;
+    --input-hover-bg-color: #ffdcb8;
+    --input-label-color: #5e2b0d;
+    --island-bg-color: #ffe7d2;
+    --island-bg-color-alt: #ffd6b2;
+    --keybinding-color: #8a4615;
+    --link-color: #ad1457;
+    --link-color-hover: #8c1149;
+    --link-color-active: #ff5a1f;
+    --overlay-bg-color: rgba(255, 215, 180, 0.6);
+    --popup-bg-color: var(--island-bg-color);
+    --popup-secondary-bg-color: #ffd2a8;
+    --popup-text-color: #2c1102;
+    --popup-text-inverted-color: #ffe7d2;
+    --select-highlight-color: #ff5a1f;
+
+    --button-hover-bg: #ffce9c;
+    --button-active-bg: #ffbe7c;
+    --button-active-border: #c2185b;
+    --default-border-color: #e5a06e;
+
+    --scrollbar-thumb: #d99965;
+    --scrollbar-thumb-hover: #c98044;
+
+    --color-slider-track: hsl(20, 95%, 80%);
+    --color-slider-thumb: #ad1457;
+
+    --color-selection: #c2185b;
+
+    --color-primary: #c2185b;
+    --color-primary-darker: #a31049;
+    --color-primary-darkest: #7a0a36;
+    --color-primary-light: #ffc4dc;
+    --color-primary-light-darker: #ffaccf;
+    --color-primary-hover: #a31049;
+
+    --color-disabled: #cf9c80;
+
+    --color-logo-icon: #c2185b;
+    --color-logo-text: #4d0e2a;
+
+    --color-surface-high: #ffc99b;
+    --color-surface-mid: #ffdfb8;
+    --color-surface-low: #f8b078;
+    --color-surface-lowest: #ffe7d2;
+    --color-on-surface: #2c1102;
+    --color-brand-hover: #a31049;
+    --color-on-primary-container: #4d0e2a;
+    --color-surface-primary-container: #ffc7de;
+    --color-brand-active: #7a0a36;
+    --color-border-outline: #b06a3a;
+    --color-border-outline-variant: #e5a06e;
+  }
 }

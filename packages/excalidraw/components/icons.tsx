@@ -508,6 +508,20 @@ export const SunIcon = createIcon(
   { ...modifiedTablerIconProps, strokeWidth: 1.5 },
 );
 
+export const SunsetIcon = createIcon(
+  <g stroke="currentColor" strokeLinejoin="round" fill="none">
+    <path d="M7 13a3 3 0 0 1 6 0" transform="translate(0 0)" />
+    <path d="M10 6.5V8" />
+    <path d="M13.5 7.5l-1 1" />
+    <path d="M14 11h1.5" />
+    <path d="M6.5 7.5l1 1" />
+    <path d="M4.5 11H6" />
+    <path d="M2.5 14h15" />
+    <path d="M6 17h8" />
+  </g>,
+  { ...modifiedTablerIconProps, strokeWidth: 1.5 },
+);
+
 export const HamburgerMenuIcon = createIcon(
   <g strokeWidth="1.5">
     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
