@@ -29,6 +29,8 @@ import type {
   ExcalidrawLineElement,
   ExcalidrawFlowchartNodeElement,
   ExcalidrawLinearElementSubType,
+  ExcalidrawStickyNoteElement,
+  ExcalidrawTextContainingElement,
 } from "./types";
 
 export const isInitializedImageElement = (
@@ -67,6 +69,18 @@ export const isTextElement = (
   element: ExcalidrawElement | null,
 ): element is ExcalidrawTextElement => {
   return element != null && element.type === "text";
+};
+
+export const isStickyNoteElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawStickyNoteElement => {
+  return element != null && element.type === "stickyNote";
+};
+
+export const isTextContainingElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawTextContainingElement => {
+  return isTextElement(element) || isStickyNoteElement(element);
 };
 
 export const isFrameElement = (
@@ -217,6 +231,7 @@ export const isRectangularElement = (
   return (
     element != null &&
     (element.type === "rectangle" ||
+      element.type === "stickyNote" ||
       element.type === "image" ||
       element.type === "text" ||
       element.type === "iframe" ||
@@ -261,7 +276,8 @@ export const isExcalidrawElement = (
     case "frame":
     case "magicframe":
     case "image":
-    case "selection": {
+    case "selection":
+    case "stickyNote": {
       return true;
     }
     default: {
@@ -307,6 +323,7 @@ export const isArrowBoundToElement = (element: ExcalidrawArrowElement) => {
 
 export const isUsingAdaptiveRadius = (type: string) =>
   type === "rectangle" ||
+  type === "stickyNote" ||
   type === "embeddable" ||
   type === "iframe" ||
   type === "image";

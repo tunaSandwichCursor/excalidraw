@@ -30,6 +30,7 @@ import type {
   ExcalidrawElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawArrowElement,
   ExcalidrawRectangleElement,
   ExcalidrawEllipseElement,
@@ -438,6 +439,8 @@ type Element<T extends DrawingToolName> = T extends "line" | "freedraw"
   ? ExcalidrawArrowElement
   : T extends "text"
   ? ExcalidrawTextElement
+  : T extends "stickyNote"
+  ? ExcalidrawStickyNoteElement
   : T extends "rectangle"
   ? ExcalidrawRectangleElement
   : T extends "ellipse"

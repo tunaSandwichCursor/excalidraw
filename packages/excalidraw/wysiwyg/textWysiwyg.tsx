@@ -43,14 +43,19 @@ import { getWrappedTextLines } from "@excalidraw/element";
 import {
   isArrowElement,
   isBoundToContainer,
+  isStickyNoteElement,
+  isTextContainingElement,
   isTextElement,
 } from "@excalidraw/element";
+import { STICKY_NOTE_TEXT_PADDING } from "@excalidraw/element";
 
 import type {
   ExcalidrawElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElementWithContainer,
   ExcalidrawTextElement,
+  ExcalidrawTextContainingElement,
+  ExcalidrawStickyNoteElement,
 } from "@excalidraw/element/types";
 
 import { actionSaveToActiveFile } from "../actions";
@@ -217,7 +222,7 @@ export const textWysiwyg = ({
   onChange?: (nextOriginalText: string) => void;
   onSubmit: (data: { viaKeyboard: boolean; nextOriginalText: string }) => void;
   getViewportCoords: (x: number, y: number) => [number, number];
-  element: ExcalidrawTextElement;
+  element: ExcalidrawTextContainingElement;
   canvas: HTMLCanvasElement;
   excalidrawContainer: HTMLDivElement | null;
   app: App;
@@ -261,13 +266,52 @@ export const textWysiwyg = ({
     LAST_THEME = app.state.theme;
 
     const appState = app.state;
-    const updatedTextElement = app.scene.getElement<ExcalidrawTextElement>(id);
+    const updatedTextElement =
+      app.scene.getElement<ExcalidrawTextContainingElement>(id);
 
     if (!updatedTextElement) {
       return;
     }
     const { textAlign, verticalAlign } = updatedTextElement;
     const elementsMap = app.scene.getNonDeletedElementsMap();
+    if (isStickyNoteElement(updatedTextElement)) {
+      const padding = STICKY_NOTE_TEXT_PADDING;
+      const coordX = updatedTextElement.x + padding;
+      const coordY = updatedTextElement.y + padding;
+      const width = updatedTextElement.width - padding * 2;
+      const height = updatedTextElement.height - padding * 2;
+      const [viewportX, viewportY] = getViewportCoords(coordX, coordY);
+      const font = getFontString(updatedTextElement);
+      const editorMaxHeight =
+        (appState.height - viewportY) / appState.zoom.value;
+
+      Object.assign(editable.style, {
+        font,
+        lineHeight: updatedTextElement.lineHeight,
+        width: `${width}px`,
+        height: `${height}px`,
+        left: `${viewportX}px`,
+        top: `${viewportY}px`,
+        transform: getTransform(
+          width,
+          height,
+          updatedTextElement.angle,
+          appState,
+          width,
+          editorMaxHeight,
+        ),
+        textAlign,
+        verticalAlign,
+        color:
+          appState.theme === THEME.DARK
+            ? applyDarkModeFilter(updatedTextElement.strokeColor)
+            : updatedTextElement.strokeColor,
+        opacity: updatedTextElement.opacity / 100,
+        maxHeight: `${editorMaxHeight}px`,
+        overflow: "hidden",
+      });
+      return;
+    }
     if (updatedTextElement && isTextElement(updatedTextElement)) {
       let coordX = updatedTextElement.x;
       let coordY = updatedTextElement.y;
@@ -588,10 +632,9 @@ export const textWysiwyg = ({
       if (!text) {
         return;
       }
-      const container = getContainerElement(
-        element,
-        app.scene.getNonDeletedElementsMap(),
-      );
+      const container = isTextElement(element)
+        ? getContainerElement(element, app.scene.getNonDeletedElementsMap())
+        : null;
 
       const font = getFontString({
         fontSize: app.state.currentItemFontSize,
@@ -793,10 +836,15 @@ export const textWysiwyg = ({
     // it'd get stuck in an infinite loop of blur→onSubmit after we re-focus the
     // wysiwyg on update
     cleanup();
-    const updateElement = app.scene.getElement(
-      element.id,
-    ) as ExcalidrawTextElement;
-    if (!updateElement) {
+    const updateElement = app.scene.getElement(element.id);
+    if (!updateElement || !isTextContainingElement(updateElement)) {
+      return;
+    }
+    if (isStickyNoteElement(updateElement)) {
+      onSubmit({
+        viaKeyboard: submittedViaKeyboard,
+        nextOriginalText: editable.value,
+      });
       return;
     }
     const container = getContainerElement(

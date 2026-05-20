@@ -454,6 +454,7 @@ export const TOOL_TYPE = {
   line: "line",
   freedraw: "freedraw",
   text: "text",
+  stickyNote: "stickyNote",
   image: "image",
   eraser: "eraser",
   hand: "hand",
