@@ -4,7 +4,12 @@ import util from "util";
 
 import { pointFrom, type LocalPoint, type Radians } from "@excalidraw/math";
 
-import { DEFAULT_VERTICAL_ALIGN, ROUNDNESS, assertNever } from "@excalidraw/common";
+import {
+  DEFAULT_VERTICAL_ALIGN,
+  ROUNDNESS,
+  STICKY_NOTE_DEFAULT_BACKGROUND,
+  assertNever,
+} from "@excalidraw/common";
 
 import {
   newArrowElement,
@@ -17,6 +22,7 @@ import {
   newLinearElement,
   newMagicFrameElement,
   newTextElement,
+  newStickyNoteElement,
 } from "@excalidraw/element";
 
 import { isLinearElementType } from "@excalidraw/element";
@@ -29,6 +35,7 @@ import type {
   ExcalidrawElement,
   ExcalidrawGenericElement,
   ExcalidrawTextElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawLinearElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawImageElement,
@@ -189,11 +196,19 @@ export class API {
     roughness?: ExcalidrawGenericElement["roughness"];
     opacity?: ExcalidrawGenericElement["opacity"];
     // text props
-    text?: T extends "text" ? ExcalidrawTextElement["text"] : never;
-    fontSize?: T extends "text" ? ExcalidrawTextElement["fontSize"] : never;
-    fontFamily?: T extends "text" ? ExcalidrawTextElement["fontFamily"] : never;
-    textAlign?: T extends "text" ? ExcalidrawTextElement["textAlign"] : never;
-    verticalAlign?: T extends "text"
+    text?: T extends "text" | "stickyNote"
+      ? ExcalidrawTextElement["text"]
+      : never;
+    fontSize?: T extends "text" | "stickyNote"
+      ? ExcalidrawTextElement["fontSize"]
+      : never;
+    fontFamily?: T extends "text" | "stickyNote"
+      ? ExcalidrawTextElement["fontFamily"]
+      : never;
+    textAlign?: T extends "text" | "stickyNote"
+      ? ExcalidrawTextElement["textAlign"]
+      : never;
+    verticalAlign?: T extends "text" | "stickyNote"
       ? ExcalidrawTextElement["verticalAlign"]
       : never;
     boundElements?: ExcalidrawGenericElement["boundElements"];
@@ -225,6 +240,8 @@ export class API {
     ? ExcalidrawFreeDrawElement
     : T extends "text"
     ? ExcalidrawTextElement
+    : T extends "stickyNote"
+    ? ExcalidrawStickyNoteElement
     : T extends "image"
     ? ExcalidrawImageElement
     : T extends "frame"
@@ -284,6 +301,16 @@ export class API {
         element = newElement({
           type: type as "rectangle" | "diamond" | "ellipse",
           ...base,
+        });
+        break;
+      case "stickyNote":
+        element = newStickyNoteElement({
+          ...base,
+          backgroundColor:
+            rest.backgroundColor ?? STICKY_NOTE_DEFAULT_BACKGROUND,
+          text: rest.text ?? "",
+          fontSize: rest.fontSize ?? appState.currentItemFontSize,
+          fontFamily: rest.fontFamily ?? appState.currentItemFontFamily,
         });
         break;
       case "embeddable":

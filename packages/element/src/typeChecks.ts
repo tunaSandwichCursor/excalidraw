@@ -7,7 +7,9 @@ import type { ElementOrToolType } from "@excalidraw/excalidraw/types";
 import type { MarkNonNullable } from "@excalidraw/common/utility-types";
 
 import type {
+  ExcalidrawEditableTextElement,
   ExcalidrawElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawTextElement,
   ExcalidrawEmbeddableElement,
   ExcalidrawLinearElement,
@@ -67,6 +69,18 @@ export const isTextElement = (
   element: ExcalidrawElement | null,
 ): element is ExcalidrawTextElement => {
   return element != null && element.type === "text";
+};
+
+export const isStickyNoteElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawStickyNoteElement => {
+  return element != null && element.type === "stickyNote";
+};
+
+export const isEditableTextElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawEditableTextElement => {
+  return isTextElement(element) || isStickyNoteElement(element);
 };
 
 export const isFrameElement = (
@@ -250,6 +264,7 @@ export const isExcalidrawElement = (
   }
   switch (type) {
     case "text":
+    case "stickyNote":
     case "diamond":
     case "rectangle":
     case "iframe":

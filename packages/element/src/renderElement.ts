@@ -43,6 +43,9 @@ import type {
 } from "@excalidraw/excalidraw/scene/types";
 
 import { getElementAbsoluteCoords, getElementBounds } from "./bounds";
+import { STICKY_NOTE_PADDING } from "@excalidraw/common";
+
+import { getStickyNoteTextAreaBounds } from "./stickyNoteElement";
 import { getUncroppedImageElement } from "./cropElement";
 import { LinearElementEditor } from "./linearElementEditor";
 import {
@@ -62,6 +65,7 @@ import {
   hasBoundTextElement,
   isMagicFrameElement,
   isImageElement,
+  isStickyNoteElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
 import { getCornerRadius } from "./utils";
@@ -400,6 +404,63 @@ const drawElementOnCanvas = (
       context.lineCap = "round";
 
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      break;
+    }
+    case "stickyNote": {
+      context.lineJoin = "round";
+      context.lineCap = "round";
+      context.save();
+      context.shadowColor = "rgba(0, 0, 0, 0.15)";
+      context.shadowBlur = 8;
+      context.shadowOffsetX = 2;
+      context.shadowOffsetY = 2;
+      rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      context.restore();
+
+      const textBounds = getStickyNoteTextAreaBounds(element);
+      const rtl = isRTL(element.text);
+      const shouldTemporarilyAttach = rtl && !context.canvas.isConnected;
+      if (shouldTemporarilyAttach) {
+        document.body.appendChild(context.canvas);
+      }
+      context.canvas.setAttribute("dir", rtl ? "rtl" : "ltr");
+      context.save();
+      context.translate(textBounds.x - element.x, textBounds.y - element.y);
+      context.font = getFontString(element);
+      context.fillStyle =
+        renderConfig.theme === THEME.DARK
+          ? applyDarkModeFilter(element.strokeColor)
+          : element.strokeColor;
+      context.textAlign = element.textAlign as CanvasTextAlign;
+
+      const lines = element.text.replace(/\r\n?/g, "\n").split("\n");
+      const lineHeightPx = getLineHeightInPx(
+        element.fontSize,
+        element.lineHeight,
+      );
+      const verticalOffset = getVerticalOffset(
+        element.fontFamily,
+        element.fontSize,
+        lineHeightPx,
+      );
+      const horizontalOffset =
+        element.textAlign === "center"
+          ? textBounds.width / 2
+          : element.textAlign === "right"
+          ? textBounds.width
+          : 0;
+
+      for (let index = 0; index < lines.length; index++) {
+        context.fillText(
+          lines[index],
+          horizontalOffset,
+          index * lineHeightPx + verticalOffset,
+        );
+      }
+      context.restore();
+      if (shouldTemporarilyAttach) {
+        context.canvas.remove();
+      }
       break;
     }
     case "arrow":
@@ -879,6 +940,7 @@ export const renderElement = (
       break;
     }
     case "rectangle":
+    case "stickyNote":
     case "diamond":
     case "ellipse":
     case "line":

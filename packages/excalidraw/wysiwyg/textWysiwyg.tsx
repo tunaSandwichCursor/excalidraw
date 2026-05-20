@@ -41,12 +41,15 @@ import { normalizeText } from "@excalidraw/element";
 import { wrapText } from "@excalidraw/element";
 import { getWrappedTextLines } from "@excalidraw/element";
 import {
+  getStickyNoteTextAreaBounds,
   isArrowElement,
   isBoundToContainer,
+  isStickyNoteElement,
   isTextElement,
 } from "@excalidraw/element";
 
 import type {
+  ExcalidrawEditableTextElement,
   ExcalidrawElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElementWithContainer,
@@ -217,7 +220,7 @@ export const textWysiwyg = ({
   onChange?: (nextOriginalText: string) => void;
   onSubmit: (data: { viaKeyboard: boolean; nextOriginalText: string }) => void;
   getViewportCoords: (x: number, y: number) => [number, number];
-  element: ExcalidrawTextElement;
+  element: ExcalidrawEditableTextElement;
   canvas: HTMLCanvasElement;
   excalidrawContainer: HTMLDivElement | null;
   app: App;
@@ -261,11 +264,57 @@ export const textWysiwyg = ({
     LAST_THEME = app.state.theme;
 
     const appState = app.state;
-    const updatedTextElement = app.scene.getElement<ExcalidrawTextElement>(id);
+    const updatedTextElement =
+      app.scene.getElement<ExcalidrawEditableTextElement>(id);
 
     if (!updatedTextElement) {
       return;
     }
+
+    if (isStickyNoteElement(updatedTextElement)) {
+      const textBounds = getStickyNoteTextAreaBounds(updatedTextElement);
+      const lineHeightPx = getLineHeightInPx(
+        updatedTextElement.fontSize,
+        updatedTextElement.lineHeight,
+      );
+      currentTextLayout = {
+        x: textBounds.x,
+        y: textBounds.y,
+        width: textBounds.width,
+        height: textBounds.height,
+        angle: updatedTextElement.angle,
+        font: getFontString(updatedTextElement),
+        textAlign: updatedTextElement.textAlign,
+        lineHeightPx,
+      };
+      const [viewportX, viewportY] = getViewportCoords(
+        textBounds.x,
+        textBounds.y,
+      );
+      Object.assign(editable.style, {
+        left: `${viewportX}px`,
+        top: `${viewportY}px`,
+        width: `${textBounds.width * appState.zoom.value}px`,
+        height: `${textBounds.height * appState.zoom.value}px`,
+        font: getFontString(updatedTextElement),
+        color:
+          appState.theme === THEME.DARK
+            ? applyDarkModeFilter(updatedTextElement.strokeColor)
+            : updatedTextElement.strokeColor,
+        transform: getTransform(
+          textBounds.width,
+          textBounds.height,
+          updatedTextElement.angle,
+          appState,
+          textBounds.width,
+          textBounds.height,
+        ),
+        textAlign: updatedTextElement.textAlign,
+        lineHeight: `${lineHeightPx * appState.zoom.value}px`,
+      });
+      return;
+    }
+
     const { textAlign, verticalAlign } = updatedTextElement;
     const elementsMap = app.scene.getNonDeletedElementsMap();
     if (updatedTextElement && isTextElement(updatedTextElement)) {
@@ -435,7 +484,12 @@ export const textWysiwyg = ({
   let whiteSpace = "pre";
   let wordBreak = "normal";
 
-  if (isBoundToContainer(element) || !element.autoResize) {
+  if (
+    isStickyNoteElement(element) ||
+    isBoundToContainer(element) ||
+    !("autoResize" in element) ||
+    !element.autoResize
+  ) {
     whiteSpace = "pre-wrap";
     wordBreak = "break-word";
   }
@@ -588,6 +642,10 @@ export const textWysiwyg = ({
       if (!text) {
         return;
       }
+      if (isStickyNoteElement(element)) {
+        return;
+      }
+
       const container = getContainerElement(
         element,
         app.scene.getNonDeletedElementsMap(),
