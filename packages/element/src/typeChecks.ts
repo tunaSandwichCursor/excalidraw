@@ -280,8 +280,7 @@ export const isFlowchartNodeElement = (
   return (
     element.type === "rectangle" ||
     element.type === "ellipse" ||
-    element.type === "diamond" ||
-    element.type === "star"
+    element.type === "diamond"
   );
 };
 

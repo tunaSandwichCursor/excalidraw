@@ -54,7 +54,7 @@ export const SHAPES = [
   {
     icon: StarIcon,
     value: "star",
-    key: KEYS.S,
+    key: null,
     numericKey: null,
     fillable: true,
     toolbar: true,
