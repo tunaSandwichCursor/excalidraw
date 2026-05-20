@@ -192,6 +192,7 @@ export type ExcalidrawRectanguloidElement =
   | ExcalidrawRectangleElement
   | ExcalidrawImageElement
   | ExcalidrawTextElement
+  | ExcalidrawStickyNoteElement
   | ExcalidrawFreeDrawElement
   | ExcalidrawIframeLikeElement
   | ExcalidrawFrameLikeElement
@@ -213,7 +214,8 @@ export type ExcalidrawElement =
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement
   | ExcalidrawIframeElement
-  | ExcalidrawEmbeddableElement;
+  | ExcalidrawEmbeddableElement
+  | ExcalidrawStickyNoteElement;
 
 export type ExcalidrawNonSelectionElement = Exclude<
   ExcalidrawElement,
@@ -256,11 +258,29 @@ export type ExcalidrawTextElement = _ExcalidrawElementBase &
     lineHeight: number & { _brand: "unitlessLineHeight" };
   }>;
 
+export type ExcalidrawStickyNoteElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: "stickyNote";
+    fontSize: number;
+    fontFamily: FontFamilyValues;
+    text: string;
+    textAlign: TextAlign;
+    verticalAlign: VerticalAlign;
+    originalText: string;
+    autoResize: boolean;
+    lineHeight: number & { _brand: "unitlessLineHeight" };
+  }>;
+
+export type ExcalidrawTextContainingElement =
+  | ExcalidrawTextElement
+  | ExcalidrawStickyNoteElement;
+
 export type ExcalidrawBindableElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
   | ExcalidrawEllipseElement
   | ExcalidrawTextElement
+  | ExcalidrawStickyNoteElement
   | ExcalidrawImageElement
   | ExcalidrawIframeElement
   | ExcalidrawEmbeddableElement

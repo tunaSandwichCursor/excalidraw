@@ -103,6 +103,7 @@ export const AllowedExcalidrawActiveTools: Record<
   selection: true,
   lasso: true,
   text: true,
+  stickyNote: true,
   rectangle: true,
   diamond: true,
   ellipse: true,
@@ -411,6 +412,40 @@ export const restoreElement = (
       }
 
       return element;
+    case "stickyNote": {
+      delete (element as any).rawText;
+
+      let fontSize = element.fontSize;
+      let fontFamily = element.fontFamily;
+      if ("font" in element) {
+        const [fontPx, _fontFamily]: [string, string] = (
+          element as any
+        ).font.split(" ");
+        fontSize = parseFloat(fontPx);
+        fontFamily = getFontFamilyByName(_fontFamily);
+      }
+      const text = (typeof element.text === "string" && element.text) || "";
+      const lineHeight =
+        element.lineHeight || getLineHeight(element.fontFamily);
+
+      element = restoreElementWithProperties(element, {
+        fontSize,
+        fontFamily,
+        text,
+        textAlign: element.textAlign || DEFAULT_TEXT_ALIGN,
+        verticalAlign: element.verticalAlign || DEFAULT_VERTICAL_ALIGN,
+        originalText: element.originalText || text,
+        autoResize: element.autoResize ?? false,
+        lineHeight,
+      });
+
+      if (opts?.deleteInvisibleElements && !text && !element.isDeleted) {
+        element = { ...element, originalText: text, isDeleted: true };
+        element = bumpVersion(element);
+      }
+
+      return element;
+    }
     case "freedraw": {
       return restoreElementWithProperties(element, {
         points: element.points,

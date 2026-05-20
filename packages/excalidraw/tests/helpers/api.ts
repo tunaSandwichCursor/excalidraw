@@ -17,6 +17,8 @@ import {
   newLinearElement,
   newMagicFrameElement,
   newTextElement,
+  newStickyNoteElement,
+  STICKY_NOTE_DEFAULT_BACKGROUND,
 } from "@excalidraw/element";
 
 import { isLinearElementType } from "@excalidraw/element";
@@ -225,6 +227,8 @@ export class API {
     ? ExcalidrawFreeDrawElement
     : T extends "text"
     ? ExcalidrawTextElement
+    : T extends "stickyNote"
+    ? import("@excalidraw/element/types").ExcalidrawStickyNoteElement
     : T extends "image"
     ? ExcalidrawImageElement
     : T extends "frame"
@@ -296,6 +300,17 @@ export class API {
         element = newIframeElement({
           type: "iframe",
           ...base,
+        });
+        break;
+      case "stickyNote":
+        element = newStickyNoteElement({
+          ...base,
+          backgroundColor:
+            rest.backgroundColor ?? STICKY_NOTE_DEFAULT_BACKGROUND,
+          text: rest.text || "",
+          fontSize: rest.fontSize ?? appState.currentItemFontSize,
+          fontFamily: rest.fontFamily ?? appState.currentItemFontFamily,
+          textAlign: rest.textAlign ?? appState.currentItemTextAlign,
         });
         break;
       case "text":

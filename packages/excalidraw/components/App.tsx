@@ -134,6 +134,7 @@ import {
   newImageElement,
   newLinearElement,
   newTextElement,
+  newStickyNoteElement,
   refreshTextDimensions,
   deepCopyElement,
   duplicateElements,
@@ -157,6 +158,8 @@ import {
   isFlowchartNodeElement,
   isBindableElement,
   isTextElement,
+  isStickyNoteElement,
+  isTextContainingElement,
   getNormalizedDimensions,
   isElementCompletelyInViewport,
   isElementInViewport,
@@ -269,6 +272,8 @@ import type {
   ExcalidrawGenericElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
+  ExcalidrawTextContainingElement,
+  ExcalidrawStickyNoteElement,
   NonDeleted,
   InitializedExcalidrawImageElement,
   ExcalidrawImageElement,
@@ -5179,9 +5184,18 @@ class App extends React.Component<AppProps, AppState> {
               }
             }
           } else if (
+            isStickyNoteElement(selectedElement) ||
             isTextElement(selectedElement) ||
             isValidTextContainer(selectedElement)
           ) {
+            if (isStickyNoteElement(selectedElement)) {
+              this.setState({ editingTextElement: selectedElement });
+              this.handleTextWysiwyg(selectedElement, {
+                isExistingElement: true,
+              });
+              event.preventDefault();
+              return;
+            }
             let container;
             if (!isTextElement(selectedElement)) {
               container = selectedElement as ExcalidrawTextContainer;
@@ -5664,7 +5678,7 @@ class App extends React.Component<AppProps, AppState> {
   });
 
   private handleTextWysiwyg(
-    element: ExcalidrawTextElement,
+    element: ExcalidrawTextContainingElement,
     {
       isExistingElement = false,
       initialCaretSceneCoords = null,
@@ -5683,14 +5697,16 @@ class App extends React.Component<AppProps, AppState> {
       this.scene.replaceAllElements([
         // Not sure why we include deleted elements as well hence using deleted elements map
         ...this.scene.getElementsIncludingDeleted().map((_element) => {
-          if (_element.id === element.id && isTextElement(_element)) {
+          if (_element.id === element.id && isTextContainingElement(_element)) {
             return newElementWith(_element, {
               originalText: nextOriginalText,
               isDeleted: isDeleted ?? _element.isDeleted,
               // returns (wrapped) text and new dimensions
               ...refreshTextDimensions(
                 _element,
-                getContainerElement(_element, elementsMap),
+                isTextElement(_element)
+                  ? getContainerElement(_element, elementsMap)
+                  : null,
                 elementsMap,
                 nextOriginalText,
               ),
@@ -5719,7 +5735,7 @@ class App extends React.Component<AppProps, AppState> {
       },
       onChange: withBatchedUpdates((nextOriginalText) => {
         updateElement(nextOriginalText, false);
-        if (isNonDeletedElement(element)) {
+        if (isNonDeletedElement(element) && isTextElement(element)) {
           updateBoundElements(element, this.scene);
         }
       }),
@@ -5730,7 +5746,8 @@ class App extends React.Component<AppProps, AppState> {
         // keyboard-submit keeps focus on the edited object. For bound text, keep
         // the container selected even if the text becomes empty and is deleted.
         const elementIdToSelect = viaKeyboard
-          ? element.containerId || (!isDeleted ? element.id : null)
+          ? (isTextElement(element) ? element.containerId : null) ||
+            (!isDeleted ? element.id : null)
           : null;
 
         if (elementIdToSelect) {
@@ -5887,6 +5904,7 @@ class App extends React.Component<AppProps, AppState> {
 
     if (
       activeTextElement &&
+      isTextElement(activeTextElement) &&
       !activeTextElement.isDeleted &&
       !activeTextElement.autoResize &&
       isPointHittingTextAutoResizeHandle(
@@ -6509,6 +6527,12 @@ class App extends React.Component<AppProps, AppState> {
         this.setState({
           activeEmbeddable: { element: hitElement, state: "active" },
         });
+        return;
+      }
+
+      if (hitElement && isStickyNoteElement(hitElement)) {
+        this.setState({ editingTextElement: hitElement });
+        this.handleTextWysiwyg(hitElement, { isExistingElement: true });
         return;
       }
 
@@ -7858,6 +7882,8 @@ class App extends React.Component<AppProps, AppState> {
       }
     } else if (this.state.activeTool.type === "text") {
       this.handleTextOnPointerDown(event, pointerDownState);
+    } else if (this.state.activeTool.type === "stickyNote") {
+      this.handleStickyNoteOnPointerDown(event, pointerDownState);
     } else if (
       this.state.activeTool.type === "arrow" ||
       this.state.activeTool.type === "line"
@@ -8757,6 +8783,58 @@ class App extends React.Component<AppProps, AppState> {
     );
   }
 
+  private handleStickyNoteOnPointerDown = (
+    _event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    if (this.state.editingTextElement) {
+      return;
+    }
+
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const element = newStickyNoteElement({
+      x: gridX,
+      y: gridY,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor: this.state.currentItemBackgroundColor,
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: this.state.currentItemRoughness,
+      opacity: this.state.currentItemOpacity,
+      roundness: this.getCurrentItemRoundness("stickyNote"),
+      fontSize: this.state.currentItemFontSize,
+      fontFamily: this.state.currentItemFontFamily,
+      textAlign: this.state.currentItemTextAlign,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(element);
+    this.setState({ editingTextElement: element });
+    this.handleTextWysiwyg(element, { isExistingElement: false });
+
+    resetCursor(this.interactiveCanvas);
+    if (!this.state.activeTool.locked) {
+      this.setState({
+        activeTool: updateActiveTool(this.state, {
+          type: this.state.preferredSelectionTool.type,
+        }),
+      });
+    }
+  };
+
   private handleTextOnPointerDown = (
     event: React.PointerEvent<HTMLElement>,
     pointerDownState: PointerDownState,
@@ -9298,6 +9376,7 @@ class App extends React.Component<AppProps, AppState> {
     elementType:
       | "selection"
       | "rectangle"
+      | "stickyNote"
       | "diamond"
       | "ellipse"
       | "iframe"

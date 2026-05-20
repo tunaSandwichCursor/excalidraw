@@ -53,8 +53,10 @@ import {
   getBoundTextMaxWidth,
 } from "./textElement";
 import { getLineHeightInPx } from "./textMeasurements";
+import { STICKY_NOTE_TEXT_PADDING } from "./newElement";
 import {
   isTextElement,
+  isStickyNoteElement,
   isLinearElement,
   isFreeDrawElement,
   isInitializedImageElement,
@@ -71,6 +73,7 @@ import { ShapeCache } from "./shape";
 import type {
   ExcalidrawElement,
   ExcalidrawTextElement,
+  ExcalidrawStickyNoteElement,
   NonDeletedExcalidrawElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawImageElement,
@@ -400,6 +403,69 @@ const drawElementOnCanvas = (
       context.lineCap = "round";
 
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      break;
+    }
+    case "stickyNote": {
+      context.save();
+      context.shadowColor =
+        renderConfig.theme === THEME.DARK
+          ? "rgba(0, 0, 0, 0.4)"
+          : "rgba(0, 0, 0, 0.12)";
+      context.shadowBlur = 6;
+      context.shadowOffsetX = 1;
+      context.shadowOffsetY = 2;
+      context.lineJoin = "round";
+      context.lineCap = "round";
+      rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      context.restore();
+
+      const stickyNote = element as ExcalidrawStickyNoteElement;
+      const rtl = isRTL(stickyNote.text);
+      const shouldTemporarilyAttach = rtl && !context.canvas.isConnected;
+      if (shouldTemporarilyAttach) {
+        document.body.appendChild(context.canvas);
+      }
+      context.canvas.setAttribute("dir", rtl ? "rtl" : "ltr");
+      context.save();
+      context.translate(STICKY_NOTE_TEXT_PADDING, STICKY_NOTE_TEXT_PADDING);
+      context.font = getFontString(stickyNote);
+      context.fillStyle =
+        renderConfig.theme === THEME.DARK
+          ? applyDarkModeFilter(stickyNote.strokeColor)
+          : stickyNote.strokeColor;
+      context.textAlign = stickyNote.textAlign as CanvasTextAlign;
+
+      const lines = stickyNote.text.replace(/\r\n?/g, "\n").split("\n");
+      const textWidth = stickyNote.width - STICKY_NOTE_TEXT_PADDING * 2;
+      const horizontalOffset =
+        stickyNote.textAlign === "center"
+          ? textWidth / 2
+          : stickyNote.textAlign === "right"
+          ? textWidth
+          : 0;
+
+      const lineHeightPx = getLineHeightInPx(
+        stickyNote.fontSize,
+        stickyNote.lineHeight,
+      );
+
+      const verticalOffset = getVerticalOffset(
+        stickyNote.fontFamily,
+        stickyNote.fontSize,
+        lineHeightPx,
+      );
+
+      for (let index = 0; index < lines.length; index++) {
+        context.fillText(
+          lines[index],
+          horizontalOffset,
+          index * lineHeightPx + verticalOffset,
+        );
+      }
+      context.restore();
+      if (shouldTemporarilyAttach) {
+        context.canvas.remove();
+      }
       break;
     }
     case "arrow":
@@ -879,6 +945,7 @@ export const renderElement = (
       break;
     }
     case "rectangle":
+    case "stickyNote":
     case "diamond":
     case "ellipse":
     case "line":

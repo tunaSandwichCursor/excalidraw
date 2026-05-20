@@ -4,6 +4,7 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_TEXT_ALIGN,
   DEFAULT_VERTICAL_ALIGN,
+  ROUNDNESS,
   VERTICAL_ALIGN,
   randomInteger,
   randomId,
@@ -48,7 +49,15 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawStickyNoteElement,
+  ExcalidrawTextContainingElement,
 } from "./types";
+
+import { isStickyNoteElement } from "./typeChecks";
+
+export const STICKY_NOTE_DEFAULT_BACKGROUND = "#FDEFA3";
+export const STICKY_NOTE_DEFAULT_SIZE = 200;
+export const STICKY_NOTE_TEXT_PADDING = 12;
 
 export type ElementConstructorOpts = MarkOptional<
   Omit<ExcalidrawGenericElement, "id" | "type" | "isDeleted" | "updated">,
@@ -290,6 +299,52 @@ export const newTextElement = (
   return textElement;
 };
 
+export const newStickyNoteElement = (
+  opts: {
+    text?: string;
+    originalText?: string;
+    fontSize?: number;
+    fontFamily?: FontFamilyValues;
+    textAlign?: TextAlign;
+    verticalAlign?: VerticalAlign;
+    lineHeight?: ExcalidrawStickyNoteElement["lineHeight"];
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawStickyNoteElement> => {
+  const fontFamily = opts.fontFamily || DEFAULT_FONT_FAMILY;
+  const fontSize = opts.fontSize || DEFAULT_FONT_SIZE;
+  const lineHeight = opts.lineHeight || getLineHeight(fontFamily);
+  const text = normalizeText(opts.text ?? "");
+  const width = opts.width ?? STICKY_NOTE_DEFAULT_SIZE;
+  const height = opts.height ?? STICKY_NOTE_DEFAULT_SIZE;
+
+  const stickyNoteProps: ExcalidrawStickyNoteElement = {
+    ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", {
+      ...opts,
+      width,
+      height,
+      backgroundColor:
+        opts.backgroundColor ?? STICKY_NOTE_DEFAULT_BACKGROUND,
+      fillStyle: opts.fillStyle ?? "solid",
+      strokeColor: opts.strokeColor ?? "transparent",
+      strokeWidth: opts.strokeWidth ?? 1,
+      roughness: opts.roughness ?? 0,
+      roundness: opts.roundness ?? {
+        type: ROUNDNESS.ADAPTIVE_RADIUS,
+      },
+    }),
+    text,
+    fontSize,
+    fontFamily,
+    textAlign: opts.textAlign ?? DEFAULT_TEXT_ALIGN,
+    verticalAlign: opts.verticalAlign ?? VERTICAL_ALIGN.TOP,
+    originalText: opts.originalText ?? text,
+    autoResize: false,
+    lineHeight,
+  };
+
+  return newElementWith(stickyNoteProps, {});
+};
+
 const getAdjustedDimensions = (
   element: ExcalidrawTextElement,
   elementsMap: ElementsMap,
@@ -418,13 +473,18 @@ const adjustXYWithRotation = (
 };
 
 export const refreshTextDimensions = (
-  textElement: ExcalidrawTextElement,
+  textElement: ExcalidrawTextContainingElement,
   container: ExcalidrawTextContainer | null,
   elementsMap: ElementsMap,
   text = textElement.text,
 ) => {
   if (textElement.isDeleted) {
     return;
+  }
+  if (isStickyNoteElement(textElement)) {
+    const maxWidth = textElement.width - STICKY_NOTE_TEXT_PADDING * 2;
+    text = wrapText(text, getFontString(textElement), maxWidth);
+    return { text };
   }
   if (container || !textElement.autoResize) {
     text = wrapText(
@@ -435,7 +495,11 @@ export const refreshTextDimensions = (
         : textElement.width,
     );
   }
-  const dimensions = getAdjustedDimensions(textElement, elementsMap, text);
+  const dimensions = getAdjustedDimensions(
+    textElement as ExcalidrawTextElement,
+    elementsMap,
+    text,
+  );
   return { text, ...dimensions };
 };
 

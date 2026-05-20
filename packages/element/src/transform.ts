@@ -27,6 +27,7 @@ import {
   newLinearElement,
   newMagicFrameElement,
   newTextElement,
+  newStickyNoteElement,
   type ElementConstructorOpts,
 } from "./newElement";
 import { measureText, normalizeText } from "./textMeasurements";
@@ -55,6 +56,7 @@ import type {
   ExcalidrawMagicFrameElement,
   ExcalidrawSelectionElement,
   ExcalidrawTextElement,
+  ExcalidrawStickyNoteElement,
   FileId,
   FontFamilyValues,
   NonDeletedSceneElementsMap,
@@ -191,6 +193,12 @@ export type ExcalidrawElementSkeleton =
       y: number;
       id?: ExcalidrawTextElement["id"];
     } & Partial<ExcalidrawTextElement>)
+  | ({
+      type: "stickyNote";
+      x: number;
+      y: number;
+      id?: ExcalidrawStickyNoteElement["id"];
+    } & Partial<ExcalidrawStickyNoteElement>)
   | ({
       type: Extract<ExcalidrawImageElement["type"], "image">;
       x: number;
@@ -574,6 +582,14 @@ export const convertToExcalidrawElements = (
           excalidrawElement,
           getSizeFromPoints(excalidrawElement.points),
         );
+        break;
+      }
+      case "stickyNote": {
+        excalidrawElement = newStickyNoteElement({
+          width: element?.width || DEFAULT_DIMENSION,
+          height: element?.height || DEFAULT_DIMENSION,
+          ...element,
+        });
         break;
       }
       case "text": {
