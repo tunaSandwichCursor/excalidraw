@@ -8819,7 +8819,7 @@ class App extends React.Component<AppProps, AppState> {
         updateElement(nextOriginalText, false);
       }),
       onSubmit: withBatchedUpdates(({ viaKeyboard, nextOriginalText }) => {
-        const isDeleted = !nextOriginalText.trim();
+        const isDeleted = !isExistingElement && !nextOriginalText.trim();
         updateElement(nextOriginalText, isDeleted);
 
         const elementIdToSelect = viaKeyboard && !isDeleted ? element.id : null;

@@ -1,6 +1,7 @@
 import {
   FRAME_STYLE,
   MAX_DECIMALS_FOR_SVG_EXPORT,
+  STICKY_NOTE_PADDING,
   SVG_NS,
   THEME,
   DARK_THEME_FILTER,
@@ -146,7 +147,6 @@ const renderElementToSvg = (
       throw new Error("Selection rendering is not supported for SVG");
     }
     case "rectangle":
-    case "stickyNote":
     case "diamond":
     case "ellipse": {
       const shape = ShapeCache.generateElementShape(element, renderConfig);
@@ -176,6 +176,101 @@ const renderElementToSvg = (
       );
 
       addToRoot(g || node, element);
+      break;
+    }
+    case "stickyNote": {
+      const shape = ShapeCache.generateElementShape(element, renderConfig);
+      const shapeNode = roughSVGDrawWithPrecision(
+        rsvg,
+        shape,
+        MAX_DECIMALS_FOR_SVG_EXPORT,
+      );
+      if (opacity !== 1) {
+        shapeNode.setAttribute("stroke-opacity", `${opacity}`);
+        shapeNode.setAttribute("fill-opacity", `${opacity}`);
+      }
+      shapeNode.setAttribute("stroke-linecap", "round");
+      shapeNode.setAttribute(
+        "transform",
+        `translate(${offsetX || 0} ${
+          offsetY || 0
+        }) rotate(${degree} ${cx} ${cy})`,
+      );
+
+      const stickyNodes: SVGElement[] = [shapeNode];
+
+      if (element.text) {
+        const textGroup = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+        if (opacity !== 1) {
+          textGroup.setAttribute("fill-opacity", `${opacity}`);
+        }
+        textGroup.setAttribute(
+          "transform",
+          `translate(${(offsetX || 0) + STICKY_NOTE_PADDING} ${
+            (offsetY || 0) + STICKY_NOTE_PADDING
+          }) rotate(${degree} ${cx - STICKY_NOTE_PADDING} ${
+            cy - STICKY_NOTE_PADDING
+          })`,
+        );
+        const lines = element.text.replace(/\r\n?/g, "\n").split("\n");
+        const lineHeightPx = getLineHeightInPx(
+          element.fontSize,
+          element.lineHeight,
+        );
+        const textAreaWidth = element.width - STICKY_NOTE_PADDING * 2;
+        const horizontalOffset =
+          element.textAlign === "center"
+            ? textAreaWidth / 2
+            : element.textAlign === "right"
+            ? textAreaWidth
+            : 0;
+        const verticalOffset = getVerticalOffset(
+          element.fontFamily,
+          element.fontSize,
+          lineHeightPx,
+        );
+        const direction = isRTL(element.text) ? "rtl" : "ltr";
+        const textAnchor =
+          element.textAlign === "center"
+            ? "middle"
+            : element.textAlign === "right" || direction === "rtl"
+            ? "end"
+            : "start";
+        for (let i = 0; i < lines.length; i++) {
+          const text = svgRoot.ownerDocument.createElementNS(SVG_NS, "text");
+          text.textContent = lines[i];
+          text.setAttribute("x", `${horizontalOffset}`);
+          text.setAttribute("y", `${i * lineHeightPx + verticalOffset}`);
+          text.setAttribute("font-family", getFontFamilyString(element));
+          text.setAttribute("font-size", `${element.fontSize}px`);
+          text.setAttribute(
+            "fill",
+            renderConfig.theme === THEME.DARK
+              ? applyDarkModeFilter(element.strokeColor)
+              : element.strokeColor,
+          );
+          text.setAttribute("text-anchor", textAnchor);
+          text.setAttribute("style", "white-space: pre;");
+          text.setAttribute("direction", direction);
+          text.setAttribute("dominant-baseline", "alphabetic");
+          textGroup.appendChild(text);
+        }
+        stickyNodes.push(textGroup);
+      }
+
+      const stickyG = maybeWrapNodesInFrameClipPath(
+        element,
+        root,
+        stickyNodes,
+        renderConfig.frameRendering,
+        elementsMap,
+      );
+
+      if (stickyG) {
+        addToRoot(stickyG, element);
+      } else {
+        stickyNodes.forEach((n) => addToRoot(n, element));
+      }
       break;
     }
     case "iframe":
