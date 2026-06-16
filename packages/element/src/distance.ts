@@ -1,6 +1,7 @@
 import {
   curvePointDistance,
   distanceToLineSegment,
+  pointFrom,
   pointRotateRads,
 } from "@excalidraw/math";
 
@@ -14,7 +15,7 @@ import {
   deconstructRectanguloidElement,
 } from "./utils";
 
-import { elementCenterPoint } from "./bounds";
+import { elementCenterPoint, getStarPoints } from "./bounds";
 
 import type {
   ElementsMap,
@@ -24,6 +25,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 export const distanceToElement = (
@@ -43,6 +45,8 @@ export const distanceToElement = (
       return distanceToRectanguloidElement(element, elementsMap, p);
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
+    case "star":
+      return distanceToStarElement(element, elementsMap, p);
     case "ellipse":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
@@ -128,6 +132,32 @@ const distanceToEllipseElement = (
     // Instead of rotating the ellipse, rotate the point to the inverse angle
     pointRotateRads(p, center, -element.angle as Radians),
     ellipse(center, element.width / 2, element.height / 2),
+  );
+};
+
+const distanceToStarElement = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  p: GlobalPoint,
+): number => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedPoint = pointRotateRads(p, center, -element.angle as Radians);
+
+  const starPts = getStarPoints(element);
+  const segments: [GlobalPoint, GlobalPoint][] = [];
+  for (let i = 0; i < starPts.length; i++) {
+    const curr = starPts[i];
+    const next = starPts[(i + 1) % starPts.length];
+    segments.push([
+      pointFrom(element.x + curr[0], element.y + curr[1]),
+      pointFrom(element.x + next[0], element.y + next[1]),
+    ]);
+  }
+
+  return Math.min(
+    ...segments.map((s) =>
+      distanceToLineSegment(rotatedPoint, s as any),
+    ),
   );
 };
 

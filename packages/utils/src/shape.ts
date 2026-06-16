@@ -42,6 +42,7 @@ import type {
   ExcalidrawDiamondElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
+  ExcalidrawStarElement,
   ExcalidrawEmbeddableElement,
   ExcalidrawFrameLikeElement,
   ExcalidrawFreeDrawElement,
@@ -105,6 +106,7 @@ export type GeometricShape<Point extends GlobalPoint | LocalPoint> =
 type RectangularElement =
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
+  | ExcalidrawStarElement
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
@@ -132,6 +134,37 @@ export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
       pointRotateRads(pointFrom(cx, y + height), center, angle),
       pointRotateRads(pointFrom(x, cy), center, angle),
     );
+  } else if (element.type === "star") {
+    const outerRx = width / 2;
+    const outerRy = height / 2;
+    const innerRx = outerRx * 0.382;
+    const innerRy = outerRy * 0.382;
+    const points: Point[] = [];
+    for (let i = 0; i < 5; i++) {
+      const outerAngle = (Math.PI / 2) * -1 + (2 * Math.PI * i) / 5;
+      points.push(
+        pointRotateRads(
+          pointFrom(
+            cx + outerRx * Math.cos(outerAngle),
+            cy + outerRy * Math.sin(outerAngle),
+          ),
+          center,
+          angle,
+        ),
+      );
+      const innerAngle = outerAngle + Math.PI / 5;
+      points.push(
+        pointRotateRads(
+          pointFrom(
+            cx + innerRx * Math.cos(innerAngle),
+            cy + innerRy * Math.sin(innerAngle),
+          ),
+          center,
+          angle,
+        ),
+      );
+    }
+    data = polygon(...(points as [Point, Point, Point, ...Point[]]));
   } else {
     data = polygon(
       pointRotateRads(pointFrom(x, y), center, angle),

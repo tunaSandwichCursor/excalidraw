@@ -25,6 +25,7 @@ import {
   deconstructRectanguloidElement,
   elementCenterPoint,
   getDiamondBaseCorners,
+  getStarPoints,
   FOCUS_POINT_SIZE,
   getOmitSidesForEditorInterface,
   getTransformHandles,
@@ -364,6 +365,21 @@ const renderBindingHighlightForBindableElement_simple = (
             });
           }
 
+          break;
+        case "star":
+          {
+            const starPts = getStarPoints(suggestedBinding.element);
+            context.beginPath();
+            starPts.forEach((pt, i) => {
+              if (i === 0) {
+                context.moveTo(pt[0], pt[1]);
+              } else {
+                context.lineTo(pt[0], pt[1]);
+              }
+            });
+            context.closePath();
+            context.stroke();
+          }
           break;
         default:
           {
@@ -706,6 +722,21 @@ const renderBindingHighlightForBindableElement_complex = (
             });
           }
 
+          break;
+        case "star":
+          {
+            const starPts = getStarPoints(element);
+            context.beginPath();
+            starPts.forEach((pt, i) => {
+              if (i === 0) {
+                context.moveTo(pt[0] + offset, pt[1] + offset);
+              } else {
+                context.lineTo(pt[0] + offset, pt[1] + offset);
+              }
+            });
+            context.closePath();
+            context.stroke();
+          }
           break;
         default:
           {
