@@ -2,17 +2,17 @@
 
 .excalidraw {
   .collab-button {
-    --button-bg: var(--color-primary);
+    --button-bg: #e03131;
     --button-color: var(--color-surface-lowest);
-    --button-border: var(--color-primary);
+    --button-border: #e03131;
 
     --button-width: var(--lg-button-size);
     --button-height: var(--lg-button-size);
 
-    --button-hover-bg: var(--color-primary-darker);
-    --button-hover-border: var(--color-primary-darker);
+    --button-hover-bg: #c92a2a;
+    --button-hover-border: #c92a2a;
 
-    --button-active-bg: var(--color-primary-darker);
+    --button-active-bg: #c92a2a;
 
     box-shadow: 0 0 0 1px var(--color-surface-lowest);
 
