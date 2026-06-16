@@ -5030,7 +5030,13 @@ class App extends React.Component<AppProps, AppState> {
           return;
         }
 
-        if (shape) {
+        const shouldOpenStrokePopup =
+          event.key === KEYS.S &&
+          shape === "star" &&
+          (this.state.activeTool.type !== "selection" ||
+            this.scene.getSelectedElements(this.state).length > 0);
+
+        if (shape && !shouldOpenStrokePopup) {
           if (this.state.activeTool.type !== shape) {
             trackEvent(
               "toolbar",

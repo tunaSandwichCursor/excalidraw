@@ -23,9 +23,9 @@ import {
 import {
   deconstructDiamondElement,
   deconstructRectanguloidElement,
+  deconstructStarElement,
   elementCenterPoint,
   getDiamondBaseCorners,
-  getStarPoints,
   FOCUS_POINT_SIZE,
   getOmitSidesForEditorInterface,
   getTransformHandles,
@@ -368,17 +368,20 @@ const renderBindingHighlightForBindableElement_simple = (
           break;
         case "star":
           {
-            const starPts = getStarPoints(suggestedBinding.element);
-            context.beginPath();
-            starPts.forEach((pt, i) => {
-              if (i === 0) {
-                context.moveTo(pt[0], pt[1]);
-              } else {
-                context.lineTo(pt[0], pt[1]);
-              }
+            const [segments] = deconstructStarElement(suggestedBinding.element);
+
+            segments.forEach((segment) => {
+              context.beginPath();
+              context.moveTo(
+                segment[0][0] - suggestedBinding.element.x,
+                segment[0][1] - suggestedBinding.element.y,
+              );
+              context.lineTo(
+                segment[1][0] - suggestedBinding.element.x,
+                segment[1][1] - suggestedBinding.element.y,
+              );
+              context.stroke();
             });
-            context.closePath();
-            context.stroke();
           }
           break;
         default:
@@ -725,17 +728,20 @@ const renderBindingHighlightForBindableElement_complex = (
           break;
         case "star":
           {
-            const starPts = getStarPoints(element);
-            context.beginPath();
-            starPts.forEach((pt, i) => {
-              if (i === 0) {
-                context.moveTo(pt[0] + offset, pt[1] + offset);
-              } else {
-                context.lineTo(pt[0] + offset, pt[1] + offset);
-              }
+            const [segments] = deconstructStarElement(element, offset);
+
+            segments.forEach((segment) => {
+              context.beginPath();
+              context.moveTo(
+                segment[0][0] - element.x + offset,
+                segment[0][1] - element.y + offset,
+              );
+              context.lineTo(
+                segment[1][0] - element.x + offset,
+                segment[1][1] - element.y + offset,
+              );
+              context.stroke();
             });
-            context.closePath();
-            context.stroke();
           }
           break;
         default:

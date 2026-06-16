@@ -20,7 +20,9 @@ import {
   pointRotateRads,
   pointTranslate,
   rectangle,
+  vectorDot,
   vectorFromPoint,
+  vectorNormal,
   vectorNormalize,
   vectorScale,
   type GlobalPoint,
@@ -34,7 +36,7 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import { elementCenterPoint, getDiamondPoints, getStarPoints } from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -57,6 +59,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 type ElementShape = [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]];
@@ -333,6 +336,90 @@ export function deconstructRectanguloidElement(
     ),
   ];
   const shape = [sides, corners.flat()] as ElementShape;
+
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
+const getLineIntersection = (
+  lineA: LineSegment<GlobalPoint>,
+  lineB: LineSegment<GlobalPoint>,
+  fallback: GlobalPoint,
+): GlobalPoint => {
+  const [[x1, y1], [x2, y2]] = lineA;
+  const [[x3, y3], [x4, y4]] = lineB;
+  const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+  if (Math.abs(denominator) < 0.0001) {
+    return fallback;
+  }
+
+  const a = x1 * y2 - y1 * x2;
+  const b = x3 * y4 - y3 * x4;
+
+  return pointFrom<GlobalPoint>(
+    (a * (x3 - x4) - (x1 - x2) * b) / denominator,
+    (a * (y3 - y4) - (y1 - y2) * b) / denominator,
+  );
+};
+
+export function deconstructStarElement(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]] {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const points = getStarPoints(element).map((point) =>
+    pointFrom<GlobalPoint>(element.x + point[0], element.y + point[1]),
+  );
+
+  const offsetPoints =
+    offset === 0
+      ? points
+      : (() => {
+          const center = pointFrom<GlobalPoint>(
+            element.x + element.width / 2,
+            element.y + element.height / 2,
+          );
+          const offsetLines = points.map((point, index) => {
+            const nextPoint = points[(index + 1) % points.length];
+            const edge = vectorFromPoint(nextPoint, point);
+            let normal = vectorNormalize(vectorNormal(edge));
+
+            if (vectorDot(vectorFromPoint(center, point), normal) > 0) {
+              normal = vectorScale(normal, -1);
+            }
+
+            const offsetVector = vectorScale(normal, offset);
+            return lineSegment<GlobalPoint>(
+              pointFromVector(offsetVector, point),
+              pointFromVector(offsetVector, nextPoint),
+            );
+          });
+
+          return offsetLines.map((line, index) =>
+            getLineIntersection(
+              offsetLines[
+                (index + offsetLines.length - 1) % offsetLines.length
+              ],
+              line,
+              line[0],
+            ),
+          );
+        })();
+
+  const sides = offsetPoints.map((point, index) =>
+    lineSegment<GlobalPoint>(
+      point,
+      offsetPoints[(index + 1) % offsetPoints.length],
+    ),
+  );
+  const shape = [sides, []] as ElementShape;
 
   setElementShapesCacheEntry(element, shape, offset);
 

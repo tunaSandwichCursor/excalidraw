@@ -52,6 +52,7 @@ import {
   deconstructDiamondElement,
   deconstructLinearOrFreeDrawElement,
   deconstructRectanguloidElement,
+  deconstructStarElement,
 } from "./utils";
 
 import { getBoundTextElement } from "./textElement";
@@ -725,18 +726,7 @@ const intersectStarWithLineSegment = (
   const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
   const rotatedIntersector = lineSegment(rotatedA, rotatedB);
 
-  const starPts = getStarPoints(element);
-  const sides: LineSegment<GlobalPoint>[] = [];
-  for (let i = 0; i < starPts.length; i++) {
-    const curr = starPts[i];
-    const next = starPts[(i + 1) % starPts.length];
-    sides.push(
-      lineSegment<GlobalPoint>(
-        pointFrom(element.x + curr[0] + offset, element.y + curr[1] + offset),
-        pointFrom(element.x + next[0] + offset, element.y + next[1] + offset),
-      ),
-    );
-  }
+  const [sides] = deconstructStarElement(element, offset);
 
   const intersections: GlobalPoint[] = [];
   lineIntersections(
