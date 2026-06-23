@@ -32,7 +32,7 @@ export const LoadingMessage: React.FC<{ delay?: number; theme?: Theme }> = ({
   return (
     <div
       className={clsx("LoadingMessage", {
-        "LoadingMessage--dark": isDarkLikeTheme(theme),
+        "LoadingMessage--dark": theme ? isDarkLikeTheme(theme) : false,
       })}
     >
       <div>

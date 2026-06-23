@@ -296,7 +296,7 @@ export const ToggleTheme = (
         if (props?.onSelect) {
           props.onSelect(value as Theme);
         } else {
-          return actionManager.executeAction(actionToggleTheme, "ui", value);
+          return actionManager.executeAction(actionToggleTheme, "ui", value as Theme);
         }
       }}
       choices={explicitChoices}
