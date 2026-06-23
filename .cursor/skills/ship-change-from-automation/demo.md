@@ -4,14 +4,14 @@ This is the demo step for `ship-change-from-automation`. Cloud agents run in an 
 
 ## Preconditions (already true)
 
-- The dev server was started by `.cursor/environment.json` and is listening on `http://localhost:3000`.
+- The dev server was started by `.cursor/environment.json` and is listening on `http://localhost:3001`.
 - `yarn test:typecheck` and your focused tests passed in Step 3.
 
 If the dev server isn't running, check the tmux/terminal panes for a failure in `yarn start` before re-running it — don't kick off a duplicate process.
 
 ## Procedure
 
-1. **Open the app.** Use computer use to open a browser inside your VM and navigate to `http://localhost:3000`. Wait for Excalidraw to fully load.
+1. **Open the app.** Use computer use to open a browser inside your VM and navigate to `http://localhost:3001`. Wait for Excalidraw to fully load.
 2. **Set up the scene.** If your change needs prior state (e.g. existing elements on the canvas, a selected tool), create it first. Do this deliberately so the recording has clear context.
 3. **Demonstrate the change.** Pause ~1 second between actions so the recording is easy to follow.
    - **For a feature:** walk through the primary user flow as a real user would. Then demonstrate at least one edge case or alternate state if the issue description mentions one.

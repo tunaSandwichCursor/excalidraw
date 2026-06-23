@@ -36,7 +36,7 @@ Write clean code that matches the existing conventions in the files you're touch
 
 ## Step 4 — Demo the change (REQUIRED — do not skip)
 
-The dev server is already running at **http://localhost:3000** in your VM (launched by `.cursor/environment.json`). You MUST produce a visible demo of your change using computer use.
+The dev server is already running at **http://localhost:3001** in your VM (launched by `.cursor/environment.json`). You MUST produce a visible demo of your change using computer use.
 
 Follow **[demo.md](./demo.md)** — it contains the exact procedure, acceptance criteria, and what to do for non-visual changes.
 

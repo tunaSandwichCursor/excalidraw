@@ -147,10 +147,10 @@ Your PR $PR_URL does not contain a demo artifact.
 The ship-change-from-automation skill requires a screen recording and
 screenshots before a PR is considered complete. Go do this now:
 
-1. Confirm the dev server is running at http://localhost:3000 in your VM.
+1. Confirm the dev server is running at http://localhost:3001 in your VM.
    (It's started by .cursor/environment.json. Check the terminal panes
    before restarting it.)
-2. Open http://localhost:3000 in the browser inside your VM using computer
+2. Open http://localhost:3001 in the browser inside your VM using computer
    use. Do NOT use a headless browser tool — the demo must be captured by
    the VM's screen recorder.
 3. Walk through the change you made as a real user would. Pause ~1 second
