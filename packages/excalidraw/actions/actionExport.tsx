@@ -3,6 +3,8 @@ import {
   DEFAULT_EXPORT_PADDING,
   EXPORT_SCALES,
   THEME,
+  isDarkLikeTheme,
+  EXPLICIT_BUILT_IN_THEMES,
 } from "@excalidraw/common";
 
 import { getNonDeletedElements } from "@excalidraw/element";
@@ -13,7 +15,6 @@ import type { ExcalidrawElement, Theme } from "@excalidraw/element/types";
 
 import { useEditorInterface } from "../components/App";
 import { CheckboxItem } from "../components/CheckboxItem";
-import { DarkModeToggle } from "../components/DarkModeToggle";
 import { ProjectName } from "../components/ProjectName";
 import { Toast } from "../components/Toast";
 import { ToolButton } from "../components/ToolButton";
@@ -476,15 +477,28 @@ export const actionLoadScene = register({
 });
 
 export const actionExportWithDarkMode = register<
-  AppState["exportWithDarkMode"]
+  AppState["exportWithDarkMode"] | Theme
 >({
   name: "exportWithDarkMode",
-  label: "imageExportDialog.label.darkMode",
+  label: "imageExportDialog.label.exportTheme",
   trackEvent: { category: "export", action: "toggleTheme" },
   perform: (_elements, appState, value, app) => {
-    app.sessionExportThemeOverride = value ? THEME.DARK : THEME.LIGHT;
+    // Support both boolean (legacy compat) and Theme string
+    let newTheme: Theme;
+    if (typeof value === "boolean") {
+      newTheme = value ? THEME.DARK : THEME.LIGHT;
+    } else if (typeof value === "string") {
+      newTheme = value as Theme;
+    } else {
+      newTheme = THEME.LIGHT;
+    }
+    app.sessionExportThemeOverride = newTheme;
     return {
-      appState: { ...appState, exportWithDarkMode: value },
+      appState: {
+        ...appState,
+        exportWithDarkMode: isDarkLikeTheme(newTheme),
+        exportTheme: newTheme,
+      },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };
   },
@@ -497,13 +511,26 @@ export const actionExportWithDarkMode = register<
         marginBottom: "10px",
       }}
     >
-      <DarkModeToggle
-        value={appState.exportWithDarkMode ? THEME.DARK : THEME.LIGHT}
-        onChange={(theme: Theme) => {
-          updateData(theme === THEME.DARK);
+      <select
+        value={appState.exportTheme ?? (appState.exportWithDarkMode ? THEME.DARK : THEME.LIGHT)}
+        onChange={(e) => updateData(e.target.value as Theme)}
+        style={{
+          padding: "4px 8px",
+          borderRadius: "4px",
+          border: "1px solid var(--input-border-color)",
+          background: "var(--input-bg-color)",
+          color: "var(--popup-text-color)",
+          fontSize: "13px",
+          cursor: "pointer",
         }}
-        title={t("imageExportDialog.label.darkMode")}
-      />
+        title={t("imageExportDialog.label.exportTheme")}
+      >
+        {EXPLICIT_BUILT_IN_THEMES.map((theme) => (
+          <option key={theme} value={theme}>
+            {t(`labels.theme_${theme}` as any)}
+          </option>
+        ))}
+      </select>
     </div>
   ),
 });

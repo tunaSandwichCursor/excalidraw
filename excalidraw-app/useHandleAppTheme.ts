@@ -1,5 +1,11 @@
 import { THEME } from "@excalidraw/excalidraw";
-import { EVENT, CODES, KEYS } from "@excalidraw/common";
+import {
+  EVENT,
+  CODES,
+  KEYS,
+  getNextTheme,
+  validateAppThemeValue,
+} from "@excalidraw/common";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import type { Theme } from "@excalidraw/element/types";
@@ -11,11 +17,8 @@ const getDarkThemeMediaQuery = (): MediaQueryList | undefined =>
 
 export const useHandleAppTheme = () => {
   const [appTheme, setAppTheme] = useState<Theme | "system">(() => {
-    return (
-      (localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_THEME) as
-        | Theme
-        | "system"
-        | null) || THEME.LIGHT
+    return validateAppThemeValue(
+      localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_THEME),
     );
   });
   const [editorTheme, setEditorTheme] = useState<Theme>(THEME.LIGHT);
@@ -40,7 +43,12 @@ export const useHandleAppTheme = () => {
       ) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        setAppTheme(editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK);
+        // If in system mode, exit to the next explicit theme from the resolved theme
+        if (appTheme === "system") {
+          setAppTheme(getNextTheme(editorTheme));
+        } else {
+          setAppTheme(getNextTheme(editorTheme));
+        }
       }
     };
 

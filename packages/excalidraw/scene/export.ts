@@ -12,8 +12,11 @@ import {
   distance,
   getFontString,
   toBrandedType,
-  applyDarkModeFilter,
+  applyThemeColorFilter,
+  isDarkLikeTheme,
 } from "@excalidraw/common";
+
+import type { Theme } from "@excalidraw/element/types";
 
 import { getCommonBounds, getElementAbsoluteCoords } from "@excalidraw/element";
 
@@ -99,10 +102,21 @@ const truncateText = (element: ExcalidrawTextElement, maxWidth: number) => {
  * elements seems like a simple hack. In the future we'll want to move to
  * proper canvas rendering, even within editor (instead of DOM).
  */
+const resolveExportTheme = (appState: {
+  exportTheme?: Theme;
+  exportWithDarkMode?: boolean;
+}): Theme => {
+  if (appState.exportTheme) {
+    return appState.exportTheme;
+  }
+  return appState.exportWithDarkMode ? THEME.DARK : THEME.LIGHT;
+};
+
 const addFrameLabelsAsTextElements = (
   elements: readonly NonDeletedExcalidrawElement[],
-  opts: Pick<AppState, "exportWithDarkMode">,
+  opts: Pick<AppState, "exportWithDarkMode"> & { exportTheme?: Theme },
 ) => {
+  const theme = resolveExportTheme(opts);
   const nextElements: NonDeletedExcalidrawElement[] = [];
   for (const element of elements) {
     if (isFrameLikeElement(element)) {
@@ -113,7 +127,7 @@ const addFrameLabelsAsTextElements = (
         fontSize: FRAME_STYLE.nameFontSize,
         lineHeight:
           FRAME_STYLE.nameLineHeight as ExcalidrawTextElement["lineHeight"],
-        strokeColor: opts.exportWithDarkMode
+        strokeColor: isDarkLikeTheme(theme)
           ? FRAME_STYLE.nameColorDarkTheme
           : FRAME_STYLE.nameColorLightTheme,
         text: getFrameLikeTitle(element),
@@ -148,11 +162,13 @@ const prepareElementsForRender = ({
   exportingFrame,
   frameRendering,
   exportWithDarkMode,
+  exportTheme,
 }: {
   elements: readonly ExcalidrawElement[];
   exportingFrame: ExcalidrawFrameLikeElement | null | undefined;
   frameRendering: AppState["frameRendering"];
   exportWithDarkMode: AppState["exportWithDarkMode"];
+  exportTheme?: Theme;
 }) => {
   let nextElements: readonly ExcalidrawElement[];
 
@@ -165,6 +181,7 @@ const prepareElementsForRender = ({
   } else if (frameRendering.enabled && frameRendering.name) {
     nextElements = addFrameLabelsAsTextElements(elements, {
       exportWithDarkMode,
+      exportTheme,
     });
   } else {
     nextElements = elements;
@@ -218,6 +235,7 @@ export const exportToCanvas = async (
     elements,
     exportingFrame,
     exportWithDarkMode: appState.exportWithDarkMode,
+    exportTheme: appState.exportTheme,
     frameRendering,
   });
 
@@ -261,7 +279,7 @@ export const exportToCanvas = async (
       scrollY: -minY + exportPadding,
       zoom: defaultAppState.zoom,
       shouldCacheIgnoreZoom: false,
-      theme: appState.exportWithDarkMode ? THEME.DARK : THEME.LIGHT,
+      theme: resolveExportTheme(appState),
     },
     renderConfig: {
       canvasBackgroundColor: viewBackgroundColor,
@@ -272,7 +290,7 @@ export const exportToCanvas = async (
       embedsValidationStatus: new Map(),
       elementsPendingErasure: new Set(),
       pendingFlowchartNodes: null,
-      theme: appState.exportWithDarkMode ? THEME.DARK : THEME.LIGHT,
+      theme: resolveExportTheme(appState),
     },
   });
 
@@ -294,6 +312,7 @@ export const exportToSvg = async (
     exportScale?: number;
     viewBackgroundColor: string;
     exportWithDarkMode?: boolean;
+    exportTheme?: Theme;
     exportEmbedScene?: boolean;
     frameRendering?: AppState["frameRendering"];
   },
@@ -313,9 +332,11 @@ export const exportToSvg = async (
     appState.frameRendering ?? null,
   );
 
+  const resolvedTheme = resolveExportTheme(appState);
+  const exportWithDarkMode = isDarkLikeTheme(resolvedTheme);
+
   let {
     exportPadding = DEFAULT_EXPORT_PADDING,
-    exportWithDarkMode = false,
     viewBackgroundColor,
     exportScale = 1,
     exportEmbedScene,
@@ -459,9 +480,7 @@ export const exportToSvg = async (
     rect.setAttribute("height", `${height}`);
     rect.setAttribute(
       "fill",
-      exportWithDarkMode
-        ? applyDarkModeFilter(viewBackgroundColor)
-        : viewBackgroundColor,
+      applyThemeColorFilter(resolvedTheme, viewBackgroundColor),
     );
     svgRoot.appendChild(rect);
   }
@@ -496,7 +515,7 @@ export const exportToSvg = async (
           )
         : new Map(),
       reuseImages: opts?.reuseImages ?? true,
-      theme: exportWithDarkMode ? THEME.DARK : THEME.LIGHT,
+      theme: resolvedTheme,
     },
   );
 
