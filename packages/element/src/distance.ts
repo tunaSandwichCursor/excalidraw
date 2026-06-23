@@ -1,6 +1,8 @@
 import {
   curvePointDistance,
   distanceToLineSegment,
+  lineSegment,
+  pointFrom,
   pointRotateRads,
 } from "@excalidraw/math";
 
@@ -14,7 +16,7 @@ import {
   deconstructRectanguloidElement,
 } from "./utils";
 
-import { elementCenterPoint } from "./bounds";
+import { elementCenterPoint, getStarPoints } from "./bounds";
 
 import type {
   ElementsMap,
@@ -24,6 +26,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 export const distanceToElement = (
@@ -43,6 +46,8 @@ export const distanceToElement = (
       return distanceToRectanguloidElement(element, elementsMap, p);
     case "diamond":
       return distanceToDiamondElement(element, elementsMap, p);
+    case "star":
+      return distanceToStarElement(element, elementsMap, p);
     case "ellipse":
       return distanceToEllipseElement(element, elementsMap, p);
     case "line":
@@ -107,6 +112,28 @@ const distanceToDiamondElement = (
     ...curves
       .map((a) => curvePointDistance(a, rotatedPoint))
       .filter((d): d is number => d !== null),
+  );
+};
+
+const distanceToStarElement = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  p: GlobalPoint,
+): number => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedPoint = pointRotateRads(p, center, -element.angle as Radians);
+
+  const starPts = getStarPoints(element);
+  const sides = starPts.map((pt, i) => {
+    const next = starPts[(i + 1) % starPts.length];
+    return lineSegment<GlobalPoint>(
+      pointFrom(element.x + pt[0], element.y + pt[1]),
+      pointFrom(element.x + next[0], element.y + next[1]),
+    );
+  });
+
+  return Math.min(
+    ...sides.map((s) => distanceToLineSegment(rotatedPoint, s)),
   );
 };
 
