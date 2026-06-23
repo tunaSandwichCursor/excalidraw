@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-import { THEME, getNextTheme } from "@excalidraw/common";
+import { THEME } from "@excalidraw/common";
 
 import type { Theme } from "@excalidraw/element/types";
 
@@ -296,7 +296,11 @@ export const ToggleTheme = (
         if (props?.onSelect) {
           props.onSelect(value as Theme);
         } else {
-          return actionManager.executeAction(actionToggleTheme, "ui", value as Theme);
+          return actionManager.executeAction(
+            actionToggleTheme,
+            "ui",
+            value as Theme,
+          );
         }
       }}
       choices={explicitChoices}

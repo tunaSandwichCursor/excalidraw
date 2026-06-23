@@ -113,6 +113,7 @@ export const convertMermaidToExcalidraw = async ({
         window.devicePixelRatio,
       appState: {
         exportWithDarkMode: isDarkLikeTheme(theme),
+        exportTheme: theme,
       },
     });
 

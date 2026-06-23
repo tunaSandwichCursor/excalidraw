@@ -90,6 +90,42 @@ const isPendingImageElement = (
   isInitializedImageElement(element) &&
   !renderConfig.imageCache.has(element.fileId);
 
+const applyCssInvertToColorChannel = (value: number, amount: number) =>
+  Math.round(value * (1 - amount) + (255 - value) * amount);
+
+const applyCssHueRotateToRgb = (
+  red: number,
+  green: number,
+  blue: number,
+  degrees: number,
+) => {
+  const r = red / 255;
+  const g = green / 255;
+  const b = blue / 255;
+  const radians = (degrees * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+
+  const newR =
+    r * (0.213 + cos * 0.787 - sin * 0.213) +
+    g * (0.715 - cos * 0.715 - sin * 0.715) +
+    b * (0.072 - cos * 0.072 + sin * 0.928);
+  const newG =
+    r * (0.213 - cos * 0.213 + sin * 0.143) +
+    g * (0.715 + cos * 0.285 + sin * 0.14) +
+    b * (0.072 - cos * 0.072 - sin * 0.283);
+  const newB =
+    r * (0.213 - cos * 0.213 - sin * 0.787) +
+    g * (0.715 - cos * 0.715 + sin * 0.715) +
+    b * (0.072 + cos * 0.928 + sin * 0.072);
+
+  return {
+    r: Math.round(Math.max(0, Math.min(1, newR)) * 255),
+    g: Math.round(Math.max(0, Math.min(1, newG)) * 255),
+    b: Math.round(Math.max(0, Math.min(1, newB)) * 255),
+  };
+};
+
 const getCanvasPadding = (element: ExcalidrawElement) => {
   switch (element.type) {
     case "freedraw":
@@ -502,10 +538,34 @@ const drawElementOnCanvas = (
 
             const data = imageData.data;
 
-            for (let i = 0; i < data.length; i += 4) {
-              data[i] = 255 - data[i];
-              data[i + 1] = 255 - data[i + 1];
-              data[i + 2] = 255 - data[i + 2];
+            if (renderConfig.theme === THEME.SUNSET) {
+              for (let i = 0; i < data.length; i += 4) {
+                const invertedR = applyCssInvertToColorChannel(data[i], 0.88);
+                const invertedG = applyCssInvertToColorChannel(
+                  data[i + 1],
+                  0.88,
+                );
+                const invertedB = applyCssInvertToColorChannel(
+                  data[i + 2],
+                  0.88,
+                );
+                const rotated = applyCssHueRotateToRgb(
+                  invertedR,
+                  invertedG,
+                  invertedB,
+                  330,
+                );
+
+                data[i] = rotated.r;
+                data[i + 1] = rotated.g;
+                data[i + 2] = rotated.b;
+              }
+            } else {
+              for (let i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+              }
             }
 
             tempContext.putImageData(imageData, 0, 0);
