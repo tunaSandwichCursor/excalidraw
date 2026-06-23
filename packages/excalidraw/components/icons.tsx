@@ -9,14 +9,14 @@
 import clsx from "clsx";
 import React from "react";
 
-import { THEME } from "@excalidraw/common";
+import { isDarkLikeTheme } from "@excalidraw/common";
 
 import type { Theme } from "@excalidraw/element/types";
 
 export const iconFillColor = (theme: Theme) => "var(--icon-fill-color)";
 
 const handlerColor = (theme: Theme) =>
-  theme === THEME.LIGHT ? "#fff" : "#1e1e1e";
+  !isDarkLikeTheme(theme) ? "#fff" : "#1e1e1e";
 
 type Opts = {
   width?: number;
@@ -506,6 +506,16 @@ export const SunIcon = createIcon(
     <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM10 4.167V2.5M14.167 5.833l1.166-1.166M15.833 10H17.5M14.167 14.167l1.166 1.166M10 15.833V17.5M5.833 14.167l-1.166 1.166M5 10H3.333M5.833 5.833 4.667 4.667" />
   </g>,
   { ...modifiedTablerIconProps, strokeWidth: 1.5 },
+);
+
+export const SunsetIcon = createIcon(
+  <g stroke="currentColor" strokeLinejoin="round" fill="none">
+    <path d="M3 14h14M5 11.5l5-5 5 5" strokeWidth="1.2" />
+    <path d="M10 6.5V3.5" strokeWidth="1.2" />
+    <path d="M14.5 8l1.5-1.5M5.5 8 4 6.5" strokeWidth="1.2" />
+    <path d="M3 17h14" strokeWidth="1.2" />
+  </g>,
+  modifiedTablerIconProps,
 );
 
 export const HamburgerMenuIcon = createIcon(

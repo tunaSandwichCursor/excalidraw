@@ -10,6 +10,7 @@ import {
   updateActiveTool,
   CODES,
   KEYS,
+  getNextTheme,
 } from "@excalidraw/common";
 
 import { getNonDeletedElements } from "@excalidraw/element";
@@ -33,6 +34,7 @@ import {
   LassoIcon,
   MoonIcon,
   SunIcon,
+  SunsetIcon,
   TrashIcon,
   zoomAreaIcon,
   ZoomInIcon,
@@ -465,24 +467,32 @@ export const actionZoomToFit = register({
     !event[KEYS.CTRL_OR_CMD],
 });
 
+const getThemeIcon = (theme: AppState["theme"]) => {
+  switch (theme) {
+    case THEME.DARK:
+      return MoonIcon;
+    case THEME.SUNSET:
+      return SunsetIcon;
+    default:
+      return SunIcon;
+  }
+};
+
 export const actionToggleTheme = register<AppState["theme"]>({
   name: "toggleTheme",
   label: (_, appState) => {
-    return appState.theme === THEME.DARK
-      ? "buttons.lightMode"
-      : "buttons.darkMode";
+    const next = getNextTheme(appState.theme);
+    return `labels.theme_${next}` as const;
   },
-  keywords: ["toggle", "dark", "light", "mode", "theme"],
-  icon: (appState, elements) =>
-    appState.theme === THEME.LIGHT ? MoonIcon : SunIcon,
+  keywords: ["toggle", "dark", "light", "sunset", "mode", "theme"],
+  icon: (appState) => getThemeIcon(appState.theme),
   viewMode: true,
   trackEvent: { category: "canvas" },
   perform: (_, appState, value) => {
     return {
       appState: {
         ...appState,
-        theme:
-          value || (appState.theme === THEME.LIGHT ? THEME.DARK : THEME.LIGHT),
+        theme: value || getNextTheme(appState.theme),
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };

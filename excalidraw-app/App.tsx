@@ -23,6 +23,7 @@ import {
   APP_NAME,
   EVENT,
   THEME,
+  getNextTheme,
   VERSION_TIMEOUT,
   debounce,
   getVersion,
@@ -1232,9 +1233,7 @@ const ExcalidrawWrapper = () => {
             {
               ...CommandPalette.defaultItems.toggleTheme,
               perform: () => {
-                setAppTheme(
-                  editorTheme === THEME.DARK ? THEME.LIGHT : THEME.DARK,
-                );
+                setAppTheme(getNextTheme(editorTheme));
               },
             },
             {

@@ -189,9 +189,11 @@ export const getFontFamilyFallbacks = (
 export const THEME = {
   LIGHT: "light",
   DARK: "dark",
+  SUNSET: "sunset",
 } as const;
 
 export const DARK_THEME_FILTER = "invert(93%) hue-rotate(180deg)";
+export const SUNSET_THEME_FILTER = "invert(88%) hue-rotate(330deg)";
 
 export const FRAME_STYLE = {
   strokeColor: "#bbb" as ExcalidrawElement["strokeColor"],

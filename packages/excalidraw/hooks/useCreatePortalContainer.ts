@@ -1,6 +1,9 @@
 import { useState, useLayoutEffect } from "react";
 
-import { THEME } from "@excalidraw/common";
+import {
+  getThemeCssClass,
+  EXPLICIT_BUILT_IN_THEMES,
+} from "@excalidraw/common";
 
 import { useEditorInterface, useExcalidrawContainer } from "../components/App";
 import { useUIAppState } from "../context/ui-appState";
@@ -24,7 +27,16 @@ export const useCreatePortalContainer = (opts?: {
         "excalidraw--mobile",
         editorInterface.formFactor === "phone",
       );
-      div.classList.toggle("theme--dark", theme === THEME.DARK);
+      for (const t of EXPLICIT_BUILT_IN_THEMES) {
+        const cls = getThemeCssClass(t);
+        if (cls) {
+          div.classList.remove(cls);
+        }
+      }
+      const activeCls = getThemeCssClass(theme);
+      if (activeCls) {
+        div.classList.add(activeCls);
+      }
     }
   }, [div, theme, editorInterface.formFactor, opts?.className]);
 

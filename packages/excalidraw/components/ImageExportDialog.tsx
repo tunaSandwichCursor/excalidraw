@@ -7,7 +7,12 @@ import {
   isFirefox,
   EXPORT_SCALES,
   cloneJSON,
+  THEME,
+  EXPLICIT_BUILT_IN_THEMES,
+  isDarkLikeTheme,
 } from "@excalidraw/common";
+
+import type { Theme } from "@excalidraw/element/types";
 
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
@@ -60,6 +65,7 @@ type ImageExportModalProps = {
   onExportImage: AppClassProperties["onExportImage"];
   name: string;
   exportWithDarkMode: boolean;
+  exportTheme: Theme;
 };
 
 const ImageExportModal = ({
@@ -70,6 +76,7 @@ const ImageExportModal = ({
   onExportImage,
   name,
   exportWithDarkMode,
+  exportTheme,
 }: ImageExportModalProps) => {
   const hasSelection = isSomeElementSelected(
     elementsSnapshot,
@@ -100,6 +107,7 @@ const ImageExportModal = ({
     projectName,
     exportWithBackground,
     exportWithDarkMode,
+    exportTheme,
     exportScale,
     embedScene,
     resetCopyStatus,
@@ -249,19 +257,23 @@ const ImageExportModal = ({
           />
         </ExportSetting>
         <ExportSetting
-          label={t("imageExportDialog.label.darkMode")}
-          name="exportDarkModeSwitch"
+          label={t("imageExportDialog.label.exportTheme")}
+          name="exportThemeSelect"
         >
-          <Switch
-            name="exportDarkModeSwitch"
-            checked={exportWithDarkMode}
-            onChange={(checked) => {
+          <RadioGroup
+            name="exportTheme"
+            value={exportTheme}
+            onChange={(value) => {
               actionManager.executeAction(
                 actionExportWithDarkMode,
                 "ui",
-                checked,
+                value,
               );
             }}
+            choices={EXPLICIT_BUILT_IN_THEMES.map((theme) => ({
+              value: theme,
+              label: t(`labels.theme_${theme}` as any),
+            }))}
           />
         </ExportSetting>
         <ExportSetting
@@ -420,6 +432,7 @@ export const ImageExportDialog = ({
         onExportImage={onExportImage}
         name={name}
         exportWithDarkMode={appState.exportWithDarkMode}
+        exportTheme={appState.exportTheme ?? (appState.exportWithDarkMode ? THEME.DARK : THEME.LIGHT)}
       />
     </Dialog>
   );

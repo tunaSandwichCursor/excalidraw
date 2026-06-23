@@ -87,15 +87,7 @@ describe("<Excalidraw/>", () => {
       </Excalidraw>,
     ));
     expect(container.querySelector(".footer-center")).toMatchInlineSnapshot(
-      `
-      <div
-        class="footer-center zen-mode-transition"
-      >
-        <div>
-          This is a custom footer
-        </div>
-      </div>
-    `,
+      `null`,
     );
   });
 
@@ -267,25 +259,25 @@ describe("<Excalidraw/>", () => {
   });
 
   describe("Test theme prop", () => {
-    it("should show the theme toggle by default", async () => {
+    it("should show the theme picker by default", async () => {
       const { container } = await render(<Excalidraw />);
       expect(h.state.theme).toBe(THEME.LIGHT);
       //open menu
       toggleMenu(container);
-      const darkModeToggle = queryByTestId(container, "toggle-dark-mode");
-      expect(darkModeToggle).toBeTruthy();
+      const themeRadio = container.querySelector("[name='theme']");
+      expect(themeRadio).toBeTruthy();
     });
 
-    it("should not show theme toggle when the theme prop is defined", async () => {
+    it("should not show theme picker when the theme prop is defined", async () => {
       const { container } = await render(<Excalidraw theme={THEME.DARK} />);
 
       expect(h.state.theme).toBe(THEME.DARK);
       //open menu
       toggleMenu(container);
-      expect(queryByTestId(container, "toggle-dark-mode")).toBe(null);
+      expect(container.querySelector("[name='theme']")).toBe(null);
     });
 
-    it("should show theme mode toggle when `UIOptions.canvasActions.toggleTheme` is true", async () => {
+    it("should show theme picker when `UIOptions.canvasActions.toggleTheme` is true", async () => {
       const { container } = await render(
         <Excalidraw
           theme={THEME.DARK}
@@ -295,11 +287,11 @@ describe("<Excalidraw/>", () => {
       expect(h.state.theme).toBe(THEME.DARK);
       //open menu
       toggleMenu(container);
-      const darkModeToggle = queryByTestId(container, "toggle-dark-mode");
-      expect(darkModeToggle).toBeTruthy();
+      const themeRadio = container.querySelector("[name='theme']");
+      expect(themeRadio).toBeTruthy();
     });
 
-    it("should not show theme toggle when `UIOptions.canvasActions.toggleTheme` is false", async () => {
+    it("should not show theme picker when `UIOptions.canvasActions.toggleTheme` is false", async () => {
       const { container } = await render(
         <Excalidraw
           UIOptions={{ canvasActions: { toggleTheme: false } }}
@@ -309,14 +301,15 @@ describe("<Excalidraw/>", () => {
       expect(h.state.theme).toBe(THEME.DARK);
       //open menu
       toggleMenu(container);
-      const darkModeToggle = queryByTestId(container, "toggle-dark-mode");
-      expect(darkModeToggle).toBe(null);
+      const themeRadio = container.querySelector("[name='theme']");
+      expect(themeRadio).toBe(null);
     });
 
     it("should sync export theme with the UI theme when there is no session override", async () => {
       await render(<Excalidraw theme={THEME.DARK} />);
 
       expect(h.state.exportWithDarkMode).toBe(true);
+      expect(h.state.exportTheme).toBe(THEME.DARK);
 
       act(() => {
         h.setState({ exportWithDarkMode: false });
@@ -327,6 +320,13 @@ describe("<Excalidraw/>", () => {
       });
     });
 
+    it("should sync sunset export theme", async () => {
+      await render(<Excalidraw theme={THEME.SUNSET} />);
+
+      expect(h.state.exportWithDarkMode).toBe(true);
+      expect(h.state.exportTheme).toBe(THEME.SUNSET);
+    });
+
     it("should keep the export theme override for the current session", async () => {
       await render(<Excalidraw theme={THEME.LIGHT} />);
 
@@ -334,7 +334,7 @@ describe("<Excalidraw/>", () => {
         (h.app as any).actionManager.executeAction(
           actionExportWithDarkMode,
           "ui",
-          true,
+          THEME.DARK,
         );
       });
 
@@ -428,7 +428,7 @@ describe("<Excalidraw/>", () => {
       expect(queryByTestId(container, "dropdown-menu")).toMatchSnapshot();
     });
 
-    it("should update themeToggle text even if MainMenu memoized", async () => {
+    it("should render theme picker even if MainMenu memoized", async () => {
       const CustomExcalidraw = () => {
         const customMenu = useMemo(() => {
           return (
@@ -447,15 +447,8 @@ describe("<Excalidraw/>", () => {
 
       expect(h.state.theme).toBe(THEME.LIGHT);
 
-      expect(
-        queryByTestId(container, "toggle-dark-mode")?.textContent,
-      ).toContain(t("buttons.darkMode"));
-
-      fireEvent.click(queryByTestId(container, "toggle-dark-mode")!);
-
-      expect(
-        queryByTestId(container, "toggle-dark-mode")?.textContent,
-      ).toContain(t("buttons.lightMode"));
+      const themeRadio = container.querySelector("[name='theme']");
+      expect(themeRadio).toBeTruthy();
     });
   });
 });

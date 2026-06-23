@@ -14,7 +14,6 @@ import {
   DEFAULT_REDUCED_GLOBAL_ALPHA,
   ELEMENT_READY_TO_ERASE_OPACITY,
   FRAME_STYLE,
-  DARK_THEME_FILTER,
   MIME_TYPES,
   THEME,
   distance,
@@ -22,7 +21,9 @@ import {
   isRTL,
   getVerticalOffset,
   invariant,
-  applyDarkModeFilter,
+  applyThemeColorFilter,
+  isDarkLikeTheme,
+  getThemeCssFilter,
   isSafari,
 } from "@excalidraw/common";
 
@@ -363,7 +364,7 @@ const drawImagePlaceholder = (
   context: CanvasRenderingContext2D,
   theme: StaticCanvasRenderConfig["theme"],
 ) => {
-  context.fillStyle = theme === THEME.DARK ? "#2E2E2E" : "#E7E7E7";
+  context.fillStyle = isDarkLikeTheme(theme) ? "#2E2E2E" : "#E7E7E7";
   context.fillRect(0, 0, element.width, element.height);
 
   const imageMinWidthOrHeight = Math.min(element.width, element.height);
@@ -422,10 +423,10 @@ const drawElementOnCanvas = (
 
       for (const shape of shapes) {
         if (typeof shape === "string") {
-          context.fillStyle =
-            renderConfig.theme === THEME.DARK
-              ? applyDarkModeFilter(element.strokeColor)
-              : element.strokeColor;
+          context.fillStyle = applyThemeColorFilter(
+            renderConfig.theme,
+            element.strokeColor,
+          );
           context.fill(new Path2D(shape));
         } else {
           rc.draw(shape);
@@ -468,7 +469,7 @@ const drawElementOnCanvas = (
             };
 
         const shouldInvertImage =
-          renderConfig.theme === THEME.DARK &&
+          isDarkLikeTheme(renderConfig.theme) &&
           cacheEntry?.mimeType === MIME_TYPES.svg;
 
         if (shouldInvertImage && isSafari) {
@@ -522,7 +523,7 @@ const drawElementOnCanvas = (
           }
         } else {
           if (shouldInvertImage) {
-            context.filter = DARK_THEME_FILTER;
+            context.filter = getThemeCssFilter(renderConfig.theme);
           }
 
           context.drawImage(
@@ -555,10 +556,10 @@ const drawElementOnCanvas = (
         context.canvas.setAttribute("dir", rtl ? "rtl" : "ltr");
         context.save();
         context.font = getFontString(element);
-        context.fillStyle =
-          renderConfig.theme === THEME.DARK
-            ? applyDarkModeFilter(element.strokeColor)
-            : element.strokeColor;
+        context.fillStyle = applyThemeColorFilter(
+          renderConfig.theme,
+          element.strokeColor,
+        );
         context.textAlign = element.textAlign as CanvasTextAlign;
 
         // Canvas does not support multiline text by default
@@ -811,17 +812,16 @@ export const renderElement = (
         context.fillStyle = "rgba(0, 0, 200, 0.04)";
 
         context.lineWidth = FRAME_STYLE.strokeWidth / appState.zoom.value;
-        context.strokeStyle =
-          appState.theme === THEME.DARK
-            ? applyDarkModeFilter(FRAME_STYLE.strokeColor)
-            : FRAME_STYLE.strokeColor;
+        context.strokeStyle = applyThemeColorFilter(
+          appState.theme,
+          FRAME_STYLE.strokeColor,
+        );
 
         // TODO change later to only affect AI frames
         if (isMagicFrameElement(element)) {
-          context.strokeStyle =
-            appState.theme === THEME.LIGHT
-              ? "#7affd7"
-              : applyDarkModeFilter("#1d8264");
+          context.strokeStyle = !isDarkLikeTheme(appState.theme)
+            ? "#7affd7"
+            : applyThemeColorFilter(appState.theme, "#1d8264");
         }
 
         if (FRAME_STYLE.radius && context.roundRect) {

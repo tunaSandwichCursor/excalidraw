@@ -47,6 +47,9 @@ import {
   TAP_TWICE_TIMEOUT,
   TEXT_TO_CENTER_SNAP_THRESHOLD,
   THEME,
+  isDarkLikeTheme,
+  getThemeCssClass,
+  EXPLICIT_BUILT_IN_THEMES,
   TOUCH_CTX_MENU_TIMEOUT,
   VERTICAL_ALIGN,
   YOUTUBE_STATES,
@@ -800,7 +803,8 @@ class App extends React.Component<AppProps, AppState> {
     this.state = {
       ...defaultAppState,
       theme,
-      exportWithDarkMode: theme === THEME.DARK,
+      exportWithDarkMode: isDarkLikeTheme(theme),
+      exportTheme: theme,
       isLoading: true,
       ...this.getCanvasOffsets(),
       viewModeEnabled,
@@ -1619,7 +1623,7 @@ class App extends React.Component<AppProps, AppState> {
                         width: 100%;
                         height: 100%;
                         color: ${
-                          this.state.theme === THEME.DARK ? "white" : "black"
+                          isDarkLikeTheme(this.state.theme) ? "white" : "black"
                         };
                       }
                       body {
@@ -1902,7 +1906,7 @@ class App extends React.Component<AppProps, AppState> {
       return null;
     }
 
-    const isDarkTheme = this.state.theme === THEME.DARK;
+    const isDarkTheme = isDarkLikeTheme(this.state.theme);
     const nonDeletedFramesLikes = this.scene.getNonDeletedFramesLikes();
 
     const focusedSearchMatch =
@@ -3371,11 +3375,18 @@ class App extends React.Component<AppProps, AppState> {
     const elements = this.scene.getElementsIncludingDeleted();
     const elementsMap = this.scene.getElementsMapIncludingDeleted();
 
-    const shouldExportWithDarkMode =
-      (this.sessionExportThemeOverride ?? this.state.theme) === THEME.DARK;
+    const resolvedExportTheme =
+      this.sessionExportThemeOverride ?? this.state.theme;
+    const shouldExportWithDarkMode = isDarkLikeTheme(resolvedExportTheme);
 
-    if (this.state.exportWithDarkMode !== shouldExportWithDarkMode) {
-      this.setState({ exportWithDarkMode: shouldExportWithDarkMode });
+    if (
+      this.state.exportWithDarkMode !== shouldExportWithDarkMode ||
+      this.state.exportTheme !== resolvedExportTheme
+    ) {
+      this.setState({
+        exportWithDarkMode: shouldExportWithDarkMode,
+        exportTheme: resolvedExportTheme,
+      });
     }
 
     if (!this.state.showWelcomeScreen && !elements.length) {
@@ -3483,10 +3494,20 @@ class App extends React.Component<AppProps, AppState> {
       this.setState({ theme: this.props.theme });
     }
 
-    this.excalidrawContainerRef.current?.classList.toggle(
-      "theme--dark",
-      this.state.theme === THEME.DARK,
-    );
+    // Remove all theme classes and apply the current one
+    const container = this.excalidrawContainerRef.current;
+    if (container) {
+      for (const t of EXPLICIT_BUILT_IN_THEMES) {
+        const cls = getThemeCssClass(t);
+        if (cls) {
+          container.classList.remove(cls);
+        }
+      }
+      const activeCls = getThemeCssClass(this.state.theme);
+      if (activeCls) {
+        container.classList.add(activeCls);
+      }
+    }
 
     if (
       this.state.selectedLinearElement?.isEditing &&

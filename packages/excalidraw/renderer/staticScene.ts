@@ -1,8 +1,9 @@
 import {
-  applyDarkModeFilter,
   FRAME_STYLE,
   THEME,
   throttleRAF,
+  applyThemeColorFilter,
+  isDarkLikeTheme,
 } from "@excalidraw/common";
 import { isElementLink } from "@excalidraw/element";
 import { createPlaceholderEmbeddableLabel } from "@excalidraw/element";
@@ -42,16 +43,12 @@ import type {
 } from "../scene/types";
 import type { StaticCanvasAppState, Zoom } from "../types";
 
-const GridLineColor = {
-  [THEME.LIGHT]: {
-    bold: "#dddddd",
-    regular: "#e5e5e5",
-  },
-  [THEME.DARK]: {
-    bold: applyDarkModeFilter("#dddddd"),
-    regular: applyDarkModeFilter("#e5e5e5"),
-  },
-} as const;
+const getGridLineColor = (theme: string) => {
+  return {
+    bold: applyThemeColorFilter(theme, "#dddddd"),
+    regular: applyThemeColorFilter(theme, "#e5e5e5"),
+  };
+};
 
 const strokeGrid = (
   context: CanvasRenderingContext2D,
@@ -72,13 +69,10 @@ const strokeGrid = (
   const actualGridSize = gridSize * zoom.value;
 
   const spaceWidth = 1 / zoom.value;
+  const gridColor = getGridLineColor(theme);
 
   context.save();
 
-  // Offset rendering by 0.5 to ensure that 1px wide lines are crisp.
-  // We only do this when zoomed to 100% because otherwise the offset is
-  // fractional, and also visibly offsets the elements.
-  // We also do this per-axis, as each axis may already be offset by 0.5.
   if (zoom.value === 1) {
     context.translate(offsetX % 1 ? 0 : 0.5, offsetY % 1 ? 0 : 0.5);
   }
@@ -87,7 +81,6 @@ const strokeGrid = (
   for (let x = offsetX; x < offsetX + width + gridSize * 2; x += gridSize) {
     const isBold =
       gridStep > 1 && Math.round(x - scrollX) % (gridStep * gridSize) === 0;
-    // don't render regular lines when zoomed out and they're barely visible
     if (!isBold && actualGridSize < 10) {
       continue;
     }
@@ -98,9 +91,7 @@ const strokeGrid = (
 
     context.beginPath();
     context.setLineDash(isBold ? [] : lineDash);
-    context.strokeStyle = isBold
-      ? GridLineColor[theme].bold
-      : GridLineColor[theme].regular;
+    context.strokeStyle = isBold ? gridColor.bold : gridColor.regular;
     context.moveTo(x, offsetY - gridSize);
     context.lineTo(x, Math.ceil(offsetY + height + gridSize * 2));
     context.stroke();
@@ -119,9 +110,7 @@ const strokeGrid = (
 
     context.beginPath();
     context.setLineDash(isBold ? [] : lineDash);
-    context.strokeStyle = isBold
-      ? GridLineColor[theme].bold
-      : GridLineColor[theme].regular;
+    context.strokeStyle = isBold ? gridColor.bold : gridColor.regular;
     context.moveTo(offsetX - gridSize, y);
     context.lineTo(Math.ceil(offsetX + width + gridSize * 2), y);
     context.stroke();
