@@ -34,6 +34,7 @@ import {
   getCenterForBounds,
   getCubicBezierCurveBound,
   getDiamondPoints,
+  getStarPoints,
   getElementBounds,
   pointInsideBounds,
 } from "./bounds";
@@ -68,6 +69,7 @@ import type {
   ExcalidrawDiamondElement,
   ExcalidrawElement,
   ExcalidrawEllipseElement,
+  ExcalidrawStarElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
@@ -466,6 +468,13 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectStarWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -702,13 +711,40 @@ const intersectDiamondWithLineSegment = (
   return intersections;
 };
 
-/**
- *
- * @param element
- * @param a
- * @param b
- * @returns
- */
+const intersectStarWithLineSegment = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  offset: number = 0,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+  const rotatedIntersector = lineSegment(rotatedA, rotatedB);
+
+  const starPts = getStarPoints(element);
+  const sides: LineSegment<GlobalPoint>[] = [];
+  for (let i = 0; i < starPts.length; i++) {
+    const next = (i + 1) % starPts.length;
+    sides.push(
+      lineSegment(
+        pointFrom(
+          element.x + starPts[i][0] + (offset ? 0 : 0),
+          element.y + starPts[i][1],
+        ),
+        pointFrom(
+          element.x + starPts[next][0],
+          element.y + starPts[next][1],
+        ),
+      ),
+    );
+  }
+
+  const intersections: GlobalPoint[] = [];
+  lineIntersections(sides, rotatedIntersector, intersections, center, element.angle, false);
+  return intersections;
+};
+
 const intersectEllipseWithLineSegment = (
   element: ExcalidrawEllipseElement,
   elementsMap: ElementsMap,
@@ -808,6 +844,13 @@ export const isBindableElementInsideOtherBindable = (
         pointFrom(x + bottomX, y + bottomY + offset), // bottom
         pointFrom(x + leftX - offset, y + leftY), // left
       ];
+      return corners.map((corner) => pointRotateRads(corner, center, angle));
+    }
+    if (element.type === "star") {
+      const starPts = getStarPoints(element);
+      const corners: GlobalPoint[] = starPts.map(([px, py]) =>
+        pointFrom(x + px, y + py),
+      );
       return corners.map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "ellipse") {

@@ -203,6 +203,21 @@ export class ElementBounds {
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
       bounds = [minX, minY, maxX, maxY];
+    } else if (element.type === "star") {
+      const starPts = getStarPoints(element);
+      const rotated = starPts.map(([px, py]) =>
+        pointRotateRads(
+          pointFrom(element.x + px, element.y + py),
+          pointFrom(cx, cy),
+          element.angle,
+        ),
+      );
+      bounds = [
+        Math.min(...rotated.map((p) => p[0])),
+        Math.min(...rotated.map((p) => p[1])),
+        Math.max(...rotated.map((p) => p[0])),
+        Math.max(...rotated.map((p) => p[1])),
+      ];
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
       const h = (y2 - y1) / 2;
@@ -535,6 +550,39 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   const leftY = rightY;
 
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
+};
+
+/**
+ * Returns 10 [x, y] pairs for a 5-pointed star polygon.
+ * Outer points sit on the element bounding ellipse; inner points use the
+ * golden-ratio factor (≈ 0.382) to produce the classic star proportion.
+ */
+export const getStarPoints = (
+  element: ExcalidrawElement,
+): [number, number][] => {
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const outerRx = element.width / 2;
+  const outerRy = element.height / 2;
+  const INNER_RATIO = 0.382;
+  const innerRx = outerRx * INNER_RATIO;
+  const innerRy = outerRy * INNER_RATIO;
+  const NUM_POINTS = 5;
+  const points: [number, number][] = [];
+
+  for (let i = 0; i < NUM_POINTS; i++) {
+    const outerAngle = (Math.PI * 2 * i) / NUM_POINTS - Math.PI / 2;
+    points.push([
+      Math.round(cx + outerRx * Math.cos(outerAngle)),
+      Math.round(cy + outerRy * Math.sin(outerAngle)),
+    ]);
+    const innerAngle = outerAngle + Math.PI / NUM_POINTS;
+    points.push([
+      Math.round(cx + innerRx * Math.cos(innerAngle)),
+      Math.round(cy + innerRy * Math.sin(innerAngle)),
+    ]);
+  }
+  return points;
 };
 
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes
