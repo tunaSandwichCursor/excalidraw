@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-import { THEME } from "@excalidraw/common";
+import { THEME, getNextTheme } from "@excalidraw/common";
 
 import type { Theme } from "@excalidraw/element/types";
 
@@ -57,6 +57,7 @@ import {
   save,
   searchIcon,
   SunIcon,
+  SunsetIcon,
   TrashIcon,
   usersIcon,
 } from "../icons";
@@ -249,6 +250,24 @@ export const ToggleTheme = (
     return null;
   }
 
+  const explicitChoices = [
+    {
+      value: THEME.LIGHT,
+      label: SunIcon,
+      ariaLabel: `${t("labels.theme_light")} - ${shortcut}`,
+    },
+    {
+      value: THEME.DARK,
+      label: MoonIcon,
+      ariaLabel: `${t("labels.theme_dark")} - ${shortcut}`,
+    },
+    {
+      value: THEME.SUNSET,
+      label: SunsetIcon,
+      ariaLabel: `${t("labels.theme_sunset")} - ${shortcut}`,
+    },
+  ];
+
   if (props?.allowSystemTheme) {
     return (
       <DropdownMenuItemContentRadio
@@ -256,16 +275,7 @@ export const ToggleTheme = (
         value={props.theme}
         onChange={(value: Theme | "system") => props.onSelect(value)}
         choices={[
-          {
-            value: THEME.LIGHT,
-            label: SunIcon,
-            ariaLabel: `${t("buttons.lightMode")} - ${shortcut}`,
-          },
-          {
-            value: THEME.DARK,
-            label: MoonIcon,
-            ariaLabel: `${t("buttons.darkMode")} - ${shortcut}`,
-          },
+          ...explicitChoices,
           {
             value: "system",
             label: DeviceDesktopIcon,
@@ -279,32 +289,20 @@ export const ToggleTheme = (
   }
 
   return (
-    <DropdownMenuItem
-      onSelect={(event) => {
-        // do not close the menu when changing theme
-        event.preventDefault();
-
+    <DropdownMenuItemContentRadio
+      name="theme"
+      value={appState.theme}
+      onChange={(value: string) => {
         if (props?.onSelect) {
-          props.onSelect(
-            appState.theme === THEME.DARK ? THEME.LIGHT : THEME.DARK,
-          );
+          props.onSelect(value as Theme);
         } else {
-          return actionManager.executeAction(actionToggleTheme);
+          return actionManager.executeAction(actionToggleTheme, "ui", value);
         }
       }}
-      icon={appState.theme === THEME.DARK ? SunIcon : MoonIcon}
-      data-testid="toggle-dark-mode"
-      shortcut={shortcut}
-      aria-label={
-        appState.theme === THEME.DARK
-          ? t("buttons.lightMode")
-          : t("buttons.darkMode")
-      }
+      choices={explicitChoices}
     >
-      {appState.theme === THEME.DARK
-        ? t("buttons.lightMode")
-        : t("buttons.darkMode")}
-    </DropdownMenuItem>
+      {t("labels.theme")}
+    </DropdownMenuItemContentRadio>
   );
 };
 ToggleTheme.displayName = "ToggleTheme";

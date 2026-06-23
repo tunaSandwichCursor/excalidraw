@@ -9,8 +9,11 @@ import type { Degrees } from "@excalidraw/math";
 // Dark mode color transformation
 // ---------------------------------------------------------------------------
 
-// Browser-only cache to avoid memory leaks on server
+// Browser-only caches to avoid memory leaks on server
 const DARK_MODE_COLORS_CACHE: Map<string, string> | null =
+  typeof window !== "undefined" ? new Map() : null;
+
+const SUNSET_MODE_COLORS_CACHE: Map<string, string> | null =
   typeof window !== "undefined" ? new Map() : null;
 
 function cssHueRotate(
@@ -107,6 +110,51 @@ export const applyDarkModeFilter = (color: string): string => {
   }
 
   return result;
+};
+
+export const applySunsetModeFilter = (color: string): string => {
+  const cached = SUNSET_MODE_COLORS_CACHE?.get(color);
+  if (cached) {
+    return cached;
+  }
+
+  const tc = tinycolor(color);
+  const alpha = tc.getAlpha();
+
+  // invert(88%) hue-rotate(330deg) — warm-toned inversion for sunset canvas
+  const rgb = tc.toRgb();
+  const inverted = cssInvert(rgb.r, rgb.g, rgb.b, 88);
+  const rotated = cssHueRotate(
+    inverted.r,
+    inverted.g,
+    inverted.b,
+    330 as Degrees,
+  );
+
+  const result = rgbToHex(rotated.r, rotated.g, rotated.b, alpha);
+
+  if (SUNSET_MODE_COLORS_CACHE) {
+    SUNSET_MODE_COLORS_CACHE.set(color, result);
+  }
+
+  return result;
+};
+
+/**
+ * Applies the canvas color filter for the given theme.
+ * Light → identity, Dark → dark inversion, Sunset → warm inversion.
+ */
+export const applyThemeColorFilter = (
+  theme: string,
+  color: string,
+): string => {
+  if (theme === "dark") {
+    return applyDarkModeFilter(color);
+  }
+  if (theme === "sunset") {
+    return applySunsetModeFilter(color);
+  }
+  return color;
 };
 
 // ---------------------------------------------------------------------------
