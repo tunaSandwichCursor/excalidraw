@@ -1,4 +1,4 @@
-import { arrayToMap, easeOut, THEME } from "@excalidraw/common";
+import { arrayToMap, easeOut, isDarkLikeTheme } from "@excalidraw/common";
 
 import {
   computeBoundTextPosition,
@@ -63,7 +63,7 @@ export class EraserTrail extends AnimatedTrail {
         return Math.min(easeOut(l), easeOut(t));
       },
       fill: () =>
-        app.state.theme === THEME.LIGHT
+        !isDarkLikeTheme(app.state.theme)
           ? "rgba(0, 0, 0, 0.2)"
           : "rgba(255, 255, 255, 0.2)",
     });

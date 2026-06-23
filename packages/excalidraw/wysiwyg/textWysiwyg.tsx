@@ -9,7 +9,7 @@ import {
   getFontFamilyString,
   isTestEnv,
   MIME_TYPES,
-  applyDarkModeFilter,
+  applyThemeColorFilter,
   isRTL,
 } from "@excalidraw/common";
 import { pointFrom, pointRotateRads, type Radians } from "@excalidraw/math";
@@ -393,9 +393,7 @@ export const textWysiwyg = ({
         textAlign,
         verticalAlign,
         color:
-          appState.theme === THEME.DARK
-            ? applyDarkModeFilter(updatedTextElement.strokeColor)
-            : updatedTextElement.strokeColor,
+          applyThemeColorFilter(appState.theme, updatedTextElement.strokeColor),
         opacity: updatedTextElement.opacity / 100,
         maxHeight: `${editorMaxHeight}px`,
       });

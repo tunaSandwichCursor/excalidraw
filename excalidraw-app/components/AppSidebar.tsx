@@ -1,4 +1,5 @@
-import { DefaultSidebar, Sidebar, THEME } from "@excalidraw/excalidraw";
+import { DefaultSidebar, Sidebar } from "@excalidraw/excalidraw";
+import { isDarkLikeTheme } from "@excalidraw/common";
 import {
   messageCircleIcon,
   presentationIcon,
@@ -33,7 +34,7 @@ export const AppSidebar = () => {
             className="app-sidebar-promo-image"
             style={{
               ["--image-source" as any]: `url(/oss_promo_comments_${
-                theme === THEME.DARK ? "dark" : "light"
+                isDarkLikeTheme(theme) ? "dark" : "light"
               }.jpg)`,
               opacity: 0.7,
             }}
@@ -56,7 +57,7 @@ export const AppSidebar = () => {
             className="app-sidebar-promo-image"
             style={{
               ["--image-source" as any]: `url(/oss_promo_presentations_${
-                theme === THEME.DARK ? "dark" : "light"
+                isDarkLikeTheme(theme) ? "dark" : "light"
               }.svg)`,
               backgroundSize: "60%",
               opacity: 0.4,

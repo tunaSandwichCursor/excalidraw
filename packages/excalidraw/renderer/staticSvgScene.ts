@@ -3,13 +3,14 @@ import {
   MAX_DECIMALS_FOR_SVG_EXPORT,
   SVG_NS,
   THEME,
-  DARK_THEME_FILTER,
   getFontFamilyString,
   isRTL,
   isTestEnv,
   getVerticalOffset,
-  applyDarkModeFilter,
   MIME_TYPES,
+  applyThemeColorFilter,
+  isDarkLikeTheme,
+  getThemeCssFilter,
 } from "@excalidraw/common";
 import { normalizeLink, toValidURL } from "@excalidraw/common";
 import { hashString } from "@excalidraw/element";
@@ -386,9 +387,7 @@ const renderElementToSvg = (
           const path = svgRoot.ownerDocument.createElementNS(SVG_NS, "path");
           path.setAttribute(
             "fill",
-            renderConfig.theme === THEME.DARK
-              ? applyDarkModeFilter(element.strokeColor)
-              : element.strokeColor,
+            applyThemeColorFilter(renderConfig.theme, element.strokeColor),
           );
           path.setAttribute("d", shape);
           wrapper.appendChild(path);
@@ -523,10 +522,10 @@ const renderElementToSvg = (
         const g = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
 
         if (
-          renderConfig.theme === THEME.DARK &&
+          isDarkLikeTheme(renderConfig.theme) &&
           fileData.mimeType === MIME_TYPES.svg
         ) {
-          g.setAttribute("filter", DARK_THEME_FILTER);
+          g.setAttribute("filter", getThemeCssFilter(renderConfig.theme));
         }
 
         if (element.crop) {
@@ -621,9 +620,7 @@ const renderElementToSvg = (
         rect.setAttribute("fill", "none");
         rect.setAttribute(
           "stroke",
-          renderConfig.theme === THEME.DARK
-            ? applyDarkModeFilter(FRAME_STYLE.strokeColor)
-            : FRAME_STYLE.strokeColor,
+          applyThemeColorFilter(renderConfig.theme, FRAME_STYLE.strokeColor),
         );
         rect.setAttribute("stroke-width", FRAME_STYLE.strokeWidth.toString());
 
@@ -677,9 +674,7 @@ const renderElementToSvg = (
           text.setAttribute("font-size", `${element.fontSize}px`);
           text.setAttribute(
             "fill",
-            renderConfig.theme === THEME.DARK
-              ? applyDarkModeFilter(element.strokeColor)
-              : element.strokeColor,
+            applyThemeColorFilter(renderConfig.theme, element.strokeColor),
           );
           text.setAttribute("text-anchor", textAnchor);
           text.setAttribute("style", "white-space: pre;");
