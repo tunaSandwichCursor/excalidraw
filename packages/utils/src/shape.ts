@@ -34,7 +34,7 @@ import {
   type LocalPoint,
 } from "@excalidraw/math";
 
-import { getElementAbsoluteCoords } from "@excalidraw/element";
+import { getElementAbsoluteCoords, getStarPoints } from "@excalidraw/element";
 
 import type {
   ElementsMap,
@@ -135,37 +135,9 @@ export const getPolygonShape = <Point extends GlobalPoint | LocalPoint>(
       pointRotateRads(pointFrom(x, cy), center, angle),
     );
   } else if (element.type === "star") {
-    const outerRx = width / 2;
-    const outerRy = height / 2;
-    const INNER_RATIO = 0.382;
-    const innerRx = outerRx * INNER_RATIO;
-    const innerRy = outerRy * INNER_RATIO;
-    const NUM_POINTS = 5;
-    const pts: Point[] = [];
-    for (let i = 0; i < NUM_POINTS; i++) {
-      const outerAngle = (Math.PI * 2 * i) / NUM_POINTS - Math.PI / 2;
-      pts.push(
-        pointRotateRads(
-          pointFrom(
-            cx + outerRx * Math.cos(outerAngle),
-            cy + outerRy * Math.sin(outerAngle),
-          ),
-          center,
-          angle,
-        ),
-      );
-      const innerAngle = outerAngle + Math.PI / NUM_POINTS;
-      pts.push(
-        pointRotateRads(
-          pointFrom(
-            cx + innerRx * Math.cos(innerAngle),
-            cy + innerRy * Math.sin(innerAngle),
-          ),
-          center,
-          angle,
-        ),
-      );
-    }
+    const pts = getStarPoints(element).map(([pointX, pointY]) =>
+      pointRotateRads(pointFrom<Point>(x + pointX, y + pointY), center, angle),
+    );
     data = polygon(...(pts as [Point, Point, Point, ...Point[]]));
   } else {
     data = polygon(

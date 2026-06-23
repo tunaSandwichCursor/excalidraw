@@ -469,12 +469,7 @@ export const intersectElementWithLineSegment = (
         onlyFirst,
       );
     case "star":
-      return intersectStarWithLineSegment(
-        element,
-        elementsMap,
-        line,
-        offset,
-      );
+      return intersectStarWithLineSegment(element, elementsMap, line, offset);
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -724,24 +719,38 @@ const intersectStarWithLineSegment = (
 
   const starPts = getStarPoints(element);
   const sides: LineSegment<GlobalPoint>[] = [];
+  const getStarPoint = (point: [number, number]) => {
+    const starPoint = pointFrom<GlobalPoint>(
+      element.x + point[0],
+      element.y + point[1],
+    );
+
+    if (!offset) {
+      return starPoint;
+    }
+
+    return pointFromVector(
+      vectorScale(vectorNormalize(vectorFromPoint(starPoint, center)), offset),
+      starPoint,
+    );
+  };
+
   for (let i = 0; i < starPts.length; i++) {
     const next = (i + 1) % starPts.length;
     sides.push(
-      lineSegment(
-        pointFrom(
-          element.x + starPts[i][0] + (offset ? 0 : 0),
-          element.y + starPts[i][1],
-        ),
-        pointFrom(
-          element.x + starPts[next][0],
-          element.y + starPts[next][1],
-        ),
-      ),
+      lineSegment(getStarPoint(starPts[i]), getStarPoint(starPts[next])),
     );
   }
 
   const intersections: GlobalPoint[] = [];
-  lineIntersections(sides, rotatedIntersector, intersections, center, element.angle, false);
+  lineIntersections(
+    sides,
+    rotatedIntersector,
+    intersections,
+    center,
+    element.angle,
+    false,
+  );
   return intersections;
 };
 
