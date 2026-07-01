@@ -34,6 +34,7 @@ import {
   getCenterForBounds,
   getCubicBezierCurveBound,
   getDiamondPoints,
+  getStarPoints,
   getElementBounds,
   pointInsideBounds,
 } from "./bounds";
@@ -466,6 +467,14 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectRectanguloidWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        offset,
+        onlyFirst,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -808,6 +817,14 @@ export const isBindableElementInsideOtherBindable = (
         pointFrom(x + bottomX, y + bottomY + offset), // bottom
         pointFrom(x + leftX - offset, y + leftY), // left
       ];
+      return corners.map((corner) => pointRotateRads(corner, center, angle));
+    }
+    if (element.type === "star") {
+      const starPts = getStarPoints(element);
+      const corners: GlobalPoint[] = [];
+      for (let i = 0; i < starPts.length; i += 2) {
+        corners.push(pointFrom(x + starPts[i], y + starPts[i + 1]));
+      }
       return corners.map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "ellipse") {
