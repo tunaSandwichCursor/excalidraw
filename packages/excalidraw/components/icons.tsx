@@ -348,6 +348,14 @@ export const DiamondIcon = createIcon(
   tablerIconProps,
 );
 
+export const StarIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M12 2l2.939 6.243L22 9.122l-5.039 4.7L18.18 21 12 17.428 5.82 21l1.219-7.178L2 9.122l7.061-.879z" />
+  </g>,
+  tablerIconProps,
+);
+
 // tabler-icons: circle
 export const EllipseIcon = createIcon(
   <g strokeWidth="1.5">
