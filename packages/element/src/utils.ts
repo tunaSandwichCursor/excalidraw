@@ -34,7 +34,7 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import { elementCenterPoint, getDiamondPoints, getStarPoints } from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -57,6 +57,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 type ElementShape = [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]];
@@ -334,6 +335,56 @@ export function deconstructRectanguloidElement(
   ];
   const shape = [sides, corners.flat()] as ElementShape;
 
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
+export function deconstructStarElement(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]] {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const center = pointFrom<GlobalPoint>(
+    element.x + element.width / 2,
+    element.y + element.height / 2,
+  );
+  const starPts = getStarPoints(element);
+  const vertices: GlobalPoint[] = [];
+
+  for (let i = 0; i < starPts.length; i += 2) {
+    const vertex = pointFrom<GlobalPoint>(
+      element.x + starPts[i],
+      element.y + starPts[i + 1],
+    );
+
+    if (offset === 0) {
+      vertices.push(vertex);
+    } else {
+      const fromCenter = vectorFromPoint(vertex, center);
+      vertices.push(
+        pointFromVector(
+          vectorScale(
+            vectorNormalize(fromCenter),
+            pointDistance(center, vertex) + offset,
+          ),
+          center,
+        ),
+      );
+    }
+  }
+
+  const sides: LineSegment<GlobalPoint>[] = [];
+  for (let i = 0; i < vertices.length; i++) {
+    sides.push(lineSegment(vertices[i], vertices[(i + 1) % vertices.length]));
+  }
+
+  const shape = [sides, []] as ElementShape;
   setElementShapesCacheEntry(element, shape, offset);
 
   return shape;

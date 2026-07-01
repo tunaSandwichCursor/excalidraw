@@ -2656,14 +2656,53 @@ export const getBindingSideMidPoint = (
   }
 
   const center = elementCenterPoint(bindableElement, elementsMap);
+  // small offset to avoid precision issues in elbow
+  const OFFSET = 0.01;
+
+  // Stars need their binding midpoints on the visible polygon, not the bbox.
+  if (bindableElement.type === "star") {
+    const [fixedPointX, fixedPointY] = normalizeFixedPoint(binding.fixedPoint);
+    const anchor = pointRotateRads(
+      pointFrom<GlobalPoint>(
+        bindableElement.x + bindableElement.width * fixedPointX,
+        bindableElement.y + bindableElement.height * fixedPointY,
+      ),
+      center,
+      bindableElement.angle,
+    );
+    const intersection = intersectElementWithLineSegment(
+      bindableElement,
+      elementsMap,
+      lineSegment(
+        center,
+        pointFromVector(
+          vectorScale(
+            vectorNormalize(vectorFromPoint(anchor, center)),
+            Math.max(bindableElement.width, bindableElement.height) * 2,
+          ),
+          center,
+        ),
+      ),
+    ).sort(
+      (a, b) => pointDistanceSq(a, anchor) - pointDistanceSq(b, anchor),
+    )[0];
+
+    return intersection
+      ? pointFromVector(
+          vectorScale(
+            vectorNormalize(vectorFromPoint(intersection, center)),
+            OFFSET,
+          ),
+          intersection,
+        )
+      : null;
+  }
+
   const shapeType = getShapeType(bindableElement);
   const side = getShapeSideAdaptive(
     normalizeFixedPoint(binding.fixedPoint),
     shapeType,
   );
-
-  // small offset to avoid precision issues in elbow
-  const OFFSET = 0.01;
 
   if (bindableElement.type === "diamond") {
     const [sides, corners] = deconstructDiamondElement(bindableElement);
