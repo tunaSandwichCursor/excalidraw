@@ -369,21 +369,6 @@ export const getElementLineSegments = (
     return segments;
   } else if (shape.type === "polyline") {
     return shape.data as LineSegment<GlobalPoint>[];
-  } else if (_isRectanguloidElement(element)) {
-    const [sides, corners] = deconstructRectanguloidElement(element);
-    const cornerSegments: LineSegment<GlobalPoint>[] = corners
-      .map((corner) => getSegmentsOnCurve(corner, center, element.angle))
-      .flat();
-    const rotatedSides = getRotatedSides(sides, center, element.angle);
-    return [...rotatedSides, ...cornerSegments];
-  } else if (element.type === "diamond") {
-    const [sides, corners] = deconstructDiamondElement(element);
-    const cornerSegments = corners
-      .map((corner) => getSegmentsOnCurve(corner, center, element.angle))
-      .flat();
-    const rotatedSides = getRotatedSides(sides, center, element.angle);
-
-    return [...rotatedSides, ...cornerSegments];
   } else if (element.type === "star") {
     const starPts = getStarPoints(element);
     const vertices: GlobalPoint[] = [];
@@ -403,6 +388,21 @@ export const getElementLineSegments = (
       );
     }
     return segments;
+  } else if (_isRectanguloidElement(element)) {
+    const [sides, corners] = deconstructRectanguloidElement(element);
+    const cornerSegments: LineSegment<GlobalPoint>[] = corners
+      .map((corner) => getSegmentsOnCurve(corner, center, element.angle))
+      .flat();
+    const rotatedSides = getRotatedSides(sides, center, element.angle);
+    return [...rotatedSides, ...cornerSegments];
+  } else if (element.type === "diamond") {
+    const [sides, corners] = deconstructDiamondElement(element);
+    const cornerSegments = corners
+      .map((corner) => getSegmentsOnCurve(corner, center, element.angle))
+      .flat();
+    const rotatedSides = getRotatedSides(sides, center, element.angle);
+
+    return [...rotatedSides, ...cornerSegments];
   } else if (shape.type === "polygon") {
     if (isTextElement(element)) {
       const container = getContainerElement(element, elementsMap);
