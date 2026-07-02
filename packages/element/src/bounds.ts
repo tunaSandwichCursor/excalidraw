@@ -548,7 +548,7 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
 };
 
-export const getStarPoints = <Point extends LocalPoint = LocalPoint>(
+export const getStarPoints = <Point extends LocalPoint | GlobalPoint = LocalPoint>(
   element: ExcalidrawElement,
 ): Point[] => {
   const centerX = element.width / 2;
