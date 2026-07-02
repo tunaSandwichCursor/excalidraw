@@ -8,7 +8,8 @@
     "afterFileEdit": [],
     "stop": [
       {
-        "command": "bash .cursor/hooks/grind.sh"
+        "command": "bash .cursor/hooks/grind.sh",
+        "loop_limit": 5
       }
     ]
   }
