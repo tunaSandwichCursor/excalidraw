@@ -34,7 +34,7 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import { elementCenterPoint, getDiamondPoints, getStarPoints } from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -57,6 +57,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
 } from "./types";
 
 type ElementShape = [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]];
@@ -456,6 +457,57 @@ export function deconstructDiamondElement(
   ];
 
   const shape = [sides, corners.flat()] as ElementShape;
+
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
+/**
+ * Get the **unrotated** building components of a star element in the form of
+ * line segments (the 10 edges of the 5-pointed star). Stars have no rounded
+ * corners, so the curves component is always empty.
+ *
+ * @param element The star element to deconstruct
+ * @param offset An optional offset that expands the star radially
+ * @returns Tuple of **unrotated** line segments (0) and (empty) curves (1)
+ */
+export function deconstructStarElement(
+  element: ExcalidrawStarElement,
+  offset: number = 0,
+): [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]] {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const localPoints = getStarPoints(element);
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+
+  const points = localPoints.map((p) => {
+    if (offset === 0) {
+      return pointFrom<GlobalPoint>(element.x + p[0], element.y + p[1]);
+    }
+
+    // Expand each vertex radially away from the element center by `offset`
+    const dx = p[0] - cx;
+    const dy = p[1] - cy;
+    const len = Math.hypot(dx, dy) || 1;
+
+    return pointFrom<GlobalPoint>(
+      element.x + p[0] + (dx / len) * offset,
+      element.y + p[1] + (dy / len) * offset,
+    );
+  });
+
+  const sides: LineSegment<GlobalPoint>[] = [];
+  for (let i = 0; i < points.length; i++) {
+    sides.push(lineSegment(points[i], points[(i + 1) % points.length]));
+  }
+
+  const shape = [sides, []] as ElementShape;
 
   setElementShapesCacheEntry(element, shape, offset);
 

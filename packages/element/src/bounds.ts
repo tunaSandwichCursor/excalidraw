@@ -537,6 +537,49 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
   return [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY];
 };
 
+// Ratio of the inner radius to the outer radius for a regular 5-pointed star.
+// (equal to sin(18°) / sin(54°))
+export const STAR_INNER_RADIUS_RATIO = 0.382;
+
+/**
+ * Returns the 10 vertices (5 outer + 5 inner, alternating) of a 5-pointed star
+ * in element-local coordinates, normalized so the star exactly fills the
+ * element's bounding box. The first outer point sits at the top-center.
+ */
+export const getStarPoints = (element: ExcalidrawElement): LocalPoint[] => {
+  const POINTS = 5;
+
+  // Generate the raw star vertices on a unit circle, starting at the top and
+  // going clockwise, alternating between the outer and inner radius.
+  const rawPoints: LocalPoint[] = [];
+  for (let i = 0; i < POINTS * 2; i++) {
+    const angle = -Math.PI / 2 + (i * Math.PI) / POINTS;
+    const radius = i % 2 === 0 ? 1 : STAR_INNER_RADIUS_RATIO;
+    rawPoints.push(
+      pointFrom<LocalPoint>(Math.cos(angle) * radius, Math.sin(angle) * radius),
+    );
+  }
+
+  const xs = rawPoints.map((p) => p[0]);
+  const ys = rawPoints.map((p) => p[1]);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  // Guard against division by zero for degenerate (zero-sized) elements.
+  const rangeX = maxX - minX || 1;
+  const rangeY = maxY - minY || 1;
+
+  // Map the normalized vertices into the element's bounding box so the star
+  // scales with width/height (and works for any aspect ratio).
+  return rawPoints.map((p) =>
+    pointFrom<LocalPoint>(
+      ((p[0] - minX) / rangeX) * element.width,
+      ((p[1] - minY) / rangeY) * element.height,
+    ),
+  );
+};
+
 // reference: https://eliot-jones.com/2019/12/cubic-bezier-curve-bounding-boxes
 const getBezierValueForT = (
   t: number,
