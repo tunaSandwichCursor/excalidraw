@@ -473,6 +473,7 @@ export const intersectElementWithLineSegment = (
         element,
         elementsMap,
         line,
+        offset,
         onlyFirst,
       );
     case "ellipse":
@@ -663,10 +664,24 @@ const intersectRectanguloidWithLineSegment = (
 
 const getStarLineSegments = (
   element: ExcalidrawStarElement,
+  offset: number = 0,
 ): LineSegment<GlobalPoint>[] => {
-  const points = getStarPoints<GlobalPoint>(element).map(([x, y]) =>
-    pointFrom<GlobalPoint>(element.x + x, element.y + y),
-  );
+  const cx = element.width / 2;
+  const cy = element.height / 2;
+  const points = getStarPoints<GlobalPoint>(element).map(([x, y]) => {
+    let px = element.x + x;
+    let py = element.y + y;
+    if (offset !== 0) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 0) {
+        px += (dx / dist) * offset;
+        py += (dy / dist) * offset;
+      }
+    }
+    return pointFrom<GlobalPoint>(px, py);
+  });
 
   return points.map((point, index) =>
     lineSegment(point, points[(index + 1) % points.length]),
@@ -677,6 +692,7 @@ const intersectStarWithLineSegment = (
   element: ExcalidrawStarElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
+  offset: number = 0,
   onlyFirst = false,
 ): GlobalPoint[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -686,7 +702,7 @@ const intersectStarWithLineSegment = (
   const intersections: GlobalPoint[] = [];
 
   return lineIntersections(
-    getStarLineSegments(element),
+    getStarLineSegments(element, offset),
     rotatedIntersector,
     intersections,
     center,
@@ -854,10 +870,21 @@ export const isBindableElementInsideOtherBindable = (
       return corners.map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "star") {
+      const cx = width / 2;
+      const cy = height / 2;
       return getStarPoints<GlobalPoint>(element)
-        .map(([pointX, pointY]) =>
-          pointFrom<GlobalPoint>(x + pointX, y + pointY),
-        )
+        .map(([pointX, pointY]) => {
+          let px = x + pointX;
+          let py = y + pointY;
+          const dx = pointX - cx;
+          const dy = pointY - cy;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 0) {
+            px += (dx / dist) * offset;
+            py += (dy / dist) * offset;
+          }
+          return pointFrom<GlobalPoint>(px, py);
+        })
         .map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "ellipse") {
