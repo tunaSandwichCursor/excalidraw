@@ -35,6 +35,7 @@ import {
   getCubicBezierCurveBound,
   getDiamondPoints,
   getElementBounds,
+  getStarPoints,
   pointInsideBounds,
 } from "./bounds";
 import {
@@ -71,6 +72,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawStarElement,
   NonDeleted,
   NonDeletedExcalidrawElement,
   NonDeletedSceneElementsMap,
@@ -466,6 +468,13 @@ export const intersectElementWithLineSegment = (
         offset,
         onlyFirst,
       );
+    case "star":
+      return intersectStarWithLineSegment(
+        element,
+        elementsMap,
+        line,
+        onlyFirst,
+      );
     case "ellipse":
       return intersectEllipseWithLineSegment(
         element,
@@ -652,6 +661,40 @@ const intersectRectanguloidWithLineSegment = (
   return intersections;
 };
 
+const getStarLineSegments = (
+  element: ExcalidrawStarElement,
+): LineSegment<GlobalPoint>[] => {
+  const points = getStarPoints<GlobalPoint>(element).map(([x, y]) =>
+    pointFrom<GlobalPoint>(element.x + x, element.y + y),
+  );
+
+  return points.map((point, index) =>
+    lineSegment(point, points[(index + 1) % points.length]),
+  );
+};
+
+const intersectStarWithLineSegment = (
+  element: ExcalidrawStarElement,
+  elementsMap: ElementsMap,
+  l: LineSegment<GlobalPoint>,
+  onlyFirst = false,
+): GlobalPoint[] => {
+  const center = elementCenterPoint(element, elementsMap);
+  const rotatedA = pointRotateRads(l[0], center, -element.angle as Radians);
+  const rotatedB = pointRotateRads(l[1], center, -element.angle as Radians);
+  const rotatedIntersector = lineSegment(rotatedA, rotatedB);
+  const intersections: GlobalPoint[] = [];
+
+  return lineIntersections(
+    getStarLineSegments(element),
+    rotatedIntersector,
+    intersections,
+    center,
+    element.angle,
+    onlyFirst,
+  );
+};
+
 /**
  *
  * @param element
@@ -809,6 +852,13 @@ export const isBindableElementInsideOtherBindable = (
         pointFrom(x + leftX - offset, y + leftY), // left
       ];
       return corners.map((corner) => pointRotateRads(corner, center, angle));
+    }
+    if (element.type === "star") {
+      return getStarPoints<GlobalPoint>(element)
+        .map(([pointX, pointY]) =>
+          pointFrom<GlobalPoint>(x + pointX, y + pointY),
+        )
+        .map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "ellipse") {
       // For ellipse, test points at the extremes (top, right, bottom, left)
