@@ -473,6 +473,7 @@ export const intersectElementWithLineSegment = (
         element,
         elementsMap,
         line,
+        offset,
         onlyFirst,
       );
     case "ellipse":
@@ -663,8 +664,9 @@ const intersectRectanguloidWithLineSegment = (
 
 const getStarLineSegments = (
   element: ExcalidrawStarElement,
+  offset: number = 0,
 ): LineSegment<GlobalPoint>[] => {
-  const points = getStarPoints<GlobalPoint>(element).map(([x, y]) =>
+  const points = getStarPoints<GlobalPoint>(element, offset).map(([x, y]) =>
     pointFrom<GlobalPoint>(element.x + x, element.y + y),
   );
 
@@ -677,6 +679,7 @@ const intersectStarWithLineSegment = (
   element: ExcalidrawStarElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
+  offset: number = 0,
   onlyFirst = false,
 ): GlobalPoint[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -686,7 +689,7 @@ const intersectStarWithLineSegment = (
   const intersections: GlobalPoint[] = [];
 
   return lineIntersections(
-    getStarLineSegments(element),
+    getStarLineSegments(element, offset),
     rotatedIntersector,
     intersections,
     center,
@@ -854,7 +857,7 @@ export const isBindableElementInsideOtherBindable = (
       return corners.map((corner) => pointRotateRads(corner, center, angle));
     }
     if (element.type === "star") {
-      return getStarPoints<GlobalPoint>(element)
+      return getStarPoints<GlobalPoint>(element, offset)
         .map(([pointX, pointY]) =>
           pointFrom<GlobalPoint>(x + pointX, y + pointY),
         )

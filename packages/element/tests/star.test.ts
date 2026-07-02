@@ -1,6 +1,9 @@
 import { arrayToMap } from "@excalidraw/common";
 
+import { lineSegment, pointFrom, type GlobalPoint } from "@excalidraw/math";
+
 import { getElementBounds, getStarPoints } from "../src/bounds";
+import { intersectElementWithLineSegment } from "../src/collision";
 import { newElement } from "../src/newElement";
 
 describe("star geometry", () => {
@@ -39,5 +42,46 @@ describe("star geometry", () => {
     expect(y1).toBeCloseTo(20);
     expect(x2).toBeCloseTo(107.5528);
     expect(y2).toBeCloseTo(92.3607);
+  });
+
+  it("applies radial offsets to star points", () => {
+    const element = newElement({
+      type: "star",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    });
+
+    const [topPoint] = getStarPoints(element, 10);
+
+    expect(topPoint[0]).toBeCloseTo(50);
+    expect(topPoint[1]).toBeCloseTo(-10);
+  });
+
+  it("uses the binding offset when intersecting star outlines", () => {
+    const element = newElement({
+      type: "star",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    });
+    const elementsMap = arrayToMap([element]);
+    const line = lineSegment(
+      pointFrom<GlobalPoint>(50, -20),
+      pointFrom<GlobalPoint>(50, 50),
+    );
+
+    const [intersection] = intersectElementWithLineSegment(
+      element,
+      elementsMap,
+      line,
+      10,
+      true,
+    );
+
+    expect(intersection[0]).toBeCloseTo(50);
+    expect(intersection[1]).toBeCloseTo(-10);
   });
 });

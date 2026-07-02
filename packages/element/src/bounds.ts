@@ -550,6 +550,7 @@ export const getDiamondPoints = (element: ExcalidrawElement) => {
 
 export const getStarPoints = <Point extends LocalPoint | GlobalPoint = LocalPoint>(
   element: ExcalidrawElement,
+  offset: number = 0,
 ): Point[] => {
   const centerX = element.width / 2;
   const centerY = element.height / 2;
@@ -561,11 +562,21 @@ export const getStarPoints = <Point extends LocalPoint | GlobalPoint = LocalPoin
     const isOuterPoint = index % 2 === 0;
     const radiusRatio = isOuterPoint ? 1 : innerRadiusRatio;
     const angle = -Math.PI / 2 + (index * Math.PI) / 5;
+    let pointX = centerX + Math.cos(angle) * outerRadiusX * radiusRatio;
+    let pointY = centerY + Math.sin(angle) * outerRadiusY * radiusRatio;
 
-    return pointFrom<Point>(
-      centerX + Math.cos(angle) * outerRadiusX * radiusRatio,
-      centerY + Math.sin(angle) * outerRadiusY * radiusRatio,
-    );
+    if (offset !== 0) {
+      const dx = pointX - centerX;
+      const dy = pointY - centerY;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance > 0) {
+        pointX += (dx / distance) * offset;
+        pointY += (dy / distance) * offset;
+      }
+    }
+
+    return pointFrom<Point>(pointX, pointY);
   });
 };
 
