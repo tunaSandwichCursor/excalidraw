@@ -1,10 +1,14 @@
 {
   "version": 1,
   "hooks": {
+    "beforeSubmitPrompt": [],
+    "beforeShellExecution": [],
+    "beforeMCPExecution": [],
+    "beforeReadFile": [],
+    "afterFileEdit": [],
     "stop": [
       {
-        "command": "bash .cursor/hooks/require-demo-artifact.sh",
-        "loop_limit": 3
+        "command": "bash .cursor/hooks/grind.sh"
       }
     ]
   }

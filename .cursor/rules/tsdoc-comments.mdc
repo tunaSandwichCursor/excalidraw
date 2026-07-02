@@ -1,0 +1,12 @@
+---
+description: When user requests to add a comment, use TSDoc style for TypeScript comments and file headers
+alwaysApply: true
+---
+
+# TypeScript comments (TSDoc)
+
+When adding or updating comments in TypeScript (including file headers):
+
+- Use TSDoc blocks (`/** … */`).
+- Start with a one-line summary.
+- Include at least one `@` tag; use `@remarks` for file or module headers.
