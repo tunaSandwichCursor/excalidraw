@@ -240,6 +240,10 @@ export const generateRoughOptions = (
       if (element.type === "ellipse") {
         options.curveFitting = 1;
       }
+      if (element.type === "rectangle") {
+        options.stroke = "transparent";
+        options.fill = undefined;
+      }
       return options;
     }
     case "line":
