@@ -10,6 +10,15 @@
 
 This spec is the source of truth for the change. Implementation, tests and the PR description trace back to the requirement IDs below (`R1`, `R2`, …). Anything not listed under _In scope_ is out of scope for this ticket.
 
+Design pages in the Figma file illustrate the requirements; where a design and this spec disagree, the spec wins and the design is updated.
+
+| Figma page | Illustrates |
+| --- | --- |
+| [Components](https://www.figma.com/design/T0ErM6Q3BIgmGCnPz6H6j7/Untitled?node-id=4-2) | Star icon on the 24 px Tabler grid next to the existing shape icons, `ToolButton` states, icon alternatives A–D and why A was chosen (R1.1, R1.2) |
+| [Toolbar](https://www.figma.com/design/T0ErM6Q3BIgmGCnPz6H6j7/Untitled?node-id=4-3) | Before/after desktop toolbar in light and dark, mobile popover, hover/selected/focus states, rejected grouped-popover option (R1.1–R1.5, `plan.md` D3) |
+| [Canvas](https://www.figma.com/design/T0ErM6Q3BIgmGCnPz6H6j7/Untitled?node-id=4-4) | rough.js output for every stroke/fill style, non-uniform resize, bound-text box, arrow bound to the outline (R2, R3, R4.3, R4.4) |
+| [Spec](https://www.figma.com/design/T0ErM6Q3BIgmGCnPz6H6j7/Untitled?node-id=4-5) | Geometry table from `plan.md` §3, hit-testing rules, accessibility and compatibility handoff notes (R2.4, R4.1, R1.7, R5.1) |
+
 ## 1. Problem
 
 Excalidraw ships three fillable generic shapes — rectangle, diamond, ellipse. Users who want a star (ratings, highlights, "favourite" markers, flowchart decorations) draw one with the line tool or import an image. Both lose the hand-drawn styling, fill patterns, arrow binding and bound text that the built-in shapes get for free.

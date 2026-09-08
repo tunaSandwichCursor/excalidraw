@@ -69,6 +69,8 @@ Fitting to the element box: normalise the unit star's own bounds to `[0,1]` on e
 
 The `+1` nudge used by `getDiamondPoints` to avoid zero-size rough.js input is not needed because no two star vertices coincide for `w, h ≥ 1`.
 
+The same table, the hit-testing cases for R4.1 and the bound-text box from §4 are drawn to scale on the Figma [Spec page](https://www.figma.com/design/T0ErM6Q3BIgmGCnPz6H6j7/Untitled?node-id=4-5); the Canvas page renders the polygon through rough.js with the diamond's options so reviewers can compare against the running app.
+
 Data model: `ExcalidrawStarElement = _ExcalidrawElementBase & { type: "star" }`. No `points`/`spikes` field in this ticket; if configurable stars land later they can add optional fields with a `restore` default, keeping old files valid.
 
 ## 4. Bound text container (R4.4)
