@@ -79,7 +79,12 @@ Largest axis-aligned rectangle inside the star sits between the two side arms' l
 - max text height = `h / φ³` ≈ `0.236·h` − 2·`BOUND_TEXT_PADDING`
 - text-box top-left offset = `(0.309·w, 0.382·h)`; horizontally centred.
 
-Container growth (`computeContainerDimensionForBoundText`): inverse of the above (`textWidth / 0.382 + padding`, `textHeight / 0.236 + padding`). Same pattern as the diamond's `/2` and `*2`.
+Container growth (`computeContainerDimensionForBoundText`): invert the max-size formulas the same way diamond does — pad first, then scale (`2 * (dimension + padding)`, not `dimension * 2 + padding`). With `padding = 2 · BOUND_TEXT_PADDING`:
+
+- width: `(dimension + padding) / 0.382`
+- height: `(dimension + padding) / 0.236`
+
+Star width and height use different ratios, so the helper must take an axis (or equivalent). Applying one `containerType` formula to both dimensions cannot invert both max-size formulas.
 
 ## 5. Decisions
 
