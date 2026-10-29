@@ -1,7 +1,6 @@
 {
+  "name": "Excalidraw",
   "install": "yarn install --frozen-lockfile",
-  "start": "yarn start",
-  "ports": [
-    { "port": 3000, "name": "excalidraw-dev" }
-  ]
+  "start": "if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:3001/; then echo 'excalidraw already listening on 3001'; exit 0; fi; exec yarn --cwd excalidraw-app vite --host 0.0.0.0 --port 3001 --strictPort",
+  "ports": [{ "port": 3001, "name": "excalidraw-dev" }]
 }
